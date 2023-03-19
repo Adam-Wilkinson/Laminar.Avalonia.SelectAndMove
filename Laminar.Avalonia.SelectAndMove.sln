@@ -13,7 +13,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Laminar.Avalonia.SelectAndM
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Laminar.Avalonia.SelectAndMove.Example", "examples\Laminar.Avalonia.SelectAndMove.Example\Laminar.Avalonia.SelectAndMove.Example.csproj", "{48FECA80-2A48-41BE-9136-BBA9CF9AC36D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Laminar.Avalonia.SelectAndMove.UnitTests", "tests\Laminar.Avalonia.SelectAndMove.UnitTests\Laminar.Avalonia.SelectAndMove.UnitTests.csproj", "{25C78238-0264-4D9B-B4BB-BED31400F9E4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Laminar.Avalonia.SelectAndMove.UnitTests", "tests\Laminar.Avalonia.SelectAndMove.UnitTests\Laminar.Avalonia.SelectAndMove.UnitTests.csproj", "{25C78238-0264-4D9B-B4BB-BED31400F9E4}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{5C572604-32EF-4F6B-BB96-E12AD275B9BF}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

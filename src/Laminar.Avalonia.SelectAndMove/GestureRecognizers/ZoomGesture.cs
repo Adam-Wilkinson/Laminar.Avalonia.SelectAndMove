@@ -67,8 +67,6 @@ public class ZoomGesture : GestureRecognizerBase
         _zoomCenter = e.GetPosition(Target);
         CurrentZoom *= zoomAmount;
         _zoomCenter = null;
-        Point zoomCenter = e.GetPosition(Target);
-        // ZoomByDelta(zoomAmount, zoomCenter);
 
         Target!.InvalidateVisual();
     }

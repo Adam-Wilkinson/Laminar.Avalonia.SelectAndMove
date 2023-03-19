@@ -5,7 +5,28 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 	<LangVersion>11</LangVersion>
+	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+	<Title>Laminar SelectAndMove</Title>
+	<Authors>Adam-Wilkinson</Authors>
+	<Company>Laminar</Company>
+	<Description>An Avalonia panel that allows for controls to be selected, moved, and panned</Description>
+	<Copyright>MIT license</Copyright>
+	<PackageProjectUrl>https://github.com/Adam-Wilkinson/Laminar.Avalonia.SelectAndMove</PackageProjectUrl>
+	<PackageReadmeFile>README.md</PackageReadmeFile>
+	<RepositoryUrl>https://github.com/Adam-Wilkinson/Laminar.Avalonia.SelectAndMove</RepositoryUrl>
+	<RepositoryType>git</RepositoryType>
+	<PackageTags>Avalonia; Canvas; Control</PackageTags>
+	<AssemblyVersion>1.0.0</AssemblyVersion>
+	<PackageLicenseExpression>MIT</PackageLicenseExpression>
+	<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="0.10.18" />

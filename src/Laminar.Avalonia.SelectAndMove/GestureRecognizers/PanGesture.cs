@@ -1,16 +1,18 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Input.GestureRecognizers;
 using Avalonia.Media;
 
 namespace Laminar.Avalonia.SelectAndMove.GestureRecognizers;
 
-public class PanGesture : GestureRecognizerBase
+public class PanGesture : GestureRecognizer
 {
     public static readonly StyledProperty<MouseButton> PanMouseButtonProperty =
         AvaloniaProperty.Register<PanGesture, MouseButton>(nameof(PanMouseButton), MouseButton.Middle);
 
     PointerEventArgs? _previousPositionArgs;
+    IPointer? _capturedPointer = null;
 
     public MouseButton PanMouseButton
     {
@@ -20,23 +22,24 @@ public class PanGesture : GestureRecognizerBase
 
     public Vector CurrentPan { get; private set; } = Vector.Zero;
 
-    public override void PointerPressed(PointerPressedEventArgs e)
+    protected override void PointerPressed(PointerPressedEventArgs e)
     {
-        if (ButtonIsPressed(e.GetCurrentPoint(Target).Properties, PanMouseButton) && Target is IPanel targetPanel && targetPanel.Children.Count > 0)
+        if (e.Pointer is Pointer pointer && !pointer.IsGestureRecognitionSkipped && Target is Panel targetPanel && ButtonIsPressed(e.GetCurrentPoint(targetPanel).Properties, PanMouseButton) && targetPanel.Children.Count > 0)
         {
-            Track(e.Pointer);
+            Capture(e.Pointer);
+            _capturedPointer = e.Pointer;
             _previousPositionArgs = e;
         }
     }
 
-    protected override void TrackedPointerMoved(PointerEventArgs e)
+    protected override void PointerMoved(PointerEventArgs e)
     {
-        if (Target is not IPanel targetPanel)
+        if (Target is not Panel targetPanel || e.Pointer != _capturedPointer)
         {
             return;
         }
 
-        foreach (IControl control in targetPanel.Children)
+        foreach (Control control in targetPanel.Children)
         {
             control.RenderTransform ??= new MatrixTransform(Matrix.Identity);
             Vector controlDelta = e.GetPosition(control) - _previousPositionArgs!.GetPosition(control);
@@ -44,8 +47,18 @@ public class PanGesture : GestureRecognizerBase
             control.InvalidateVisual();
         }
 
-        Target.InvalidateVisual();
+        targetPanel.InvalidateVisual();
         _previousPositionArgs = e;
+    }
+
+    protected override void PointerCaptureLost(IPointer pointer)
+    {
+        _capturedPointer = null;
+    }
+
+    protected override void PointerReleased(PointerReleasedEventArgs e)
+    {
+        _capturedPointer = null;
     }
 
     private static bool ButtonIsPressed(PointerPointProperties pointerProperties, MouseButton button) => button switch

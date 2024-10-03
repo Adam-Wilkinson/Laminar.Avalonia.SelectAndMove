@@ -1,10 +1,11 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Input.GestureRecognizers;
 
 namespace Laminar.Avalonia.SelectAndMove.GestureRecognizers;
 
-public class SelectGesture : GestureRecognizerBase
+public class SelectGesture : GestureRecognizer
 {
     public static readonly StyledProperty<KeyModifiers> SelectManyKeyModifiersProperty = 
         AvaloniaProperty.Register<SelectGesture, KeyModifiers>(nameof(SelectManyKeyModifiers), KeyModifiers.Shift);
@@ -17,19 +18,14 @@ public class SelectGesture : GestureRecognizerBase
         set => SetValue(SelectManyKeyModifiersProperty, value);
     }
 
-    public override void PointerPressed(PointerPressedEventArgs e)
+    protected override void PointerPressed(PointerPressedEventArgs e)
     {
-        if (Target is not IPanel targetPanel)
+        if (Target is not Panel targetPanel || !e.GetCurrentPoint(targetPanel).Properties.IsLeftButtonPressed)
         {
             return;
         }
 
-        if (!e.GetCurrentPoint(Target).Properties.IsLeftButtonPressed)
-        {
-            return;
-        }
-
-        Control? clickedControl = GetSelectedChildAtPointerPress(e) as Control;
+        Control? clickedControl = GetSelectedChildAtPointerPress(e);
         if (clickedControl is not null && SelectAndMove.GetIsSelected(clickedControl))
         {
             return;
@@ -37,7 +33,7 @@ public class SelectGesture : GestureRecognizerBase
 
         if (!(e.KeyModifiers == SelectManyKeyModifiers))
         {
-            foreach (IControl selectedControl in targetPanel.Children)
+            foreach (Control selectedControl in targetPanel.Children)
             {
                 SelectAndMove.SetIsSelected(selectedControl, false);
             }
@@ -50,20 +46,28 @@ public class SelectGesture : GestureRecognizerBase
         }
     }
 
-    protected override void TrackedPointerMoved(PointerEventArgs e)
+    protected override void PointerMoved(PointerEventArgs e)
     {
     }
 
-    private IControl? GetSelectedChildAtPointerPress(PointerPressedEventArgs point)
+    protected override void PointerReleased(PointerReleasedEventArgs e)
     {
-        if (Target is not IPanel targetPanel)
+    }
+
+    protected override void PointerCaptureLost(IPointer pointer)
+    {
+    }
+
+    private Control? GetSelectedChildAtPointerPress(PointerPressedEventArgs point)
+    {
+        if (Target is not Panel targetPanel)
         {
             return null;
         }
 
-        IControl? currentControl = null;
+        Control? currentControl = null;
 
-        foreach (IControl child in targetPanel.Children)
+        foreach (Control child in targetPanel.Children)
         {
             if (SelectAndMove.GetIsSelectable(child) 
                 && HitTest(point, child) 
@@ -76,7 +80,7 @@ public class SelectGesture : GestureRecognizerBase
         return currentControl;
     }
 
-    private static bool HitTest(PointerPressedEventArgs point, IControl child)
+    private static bool HitTest(PointerPressedEventArgs point, Control child)
     {
         if (child is ICustomHitResolver customHitResolver)
         {

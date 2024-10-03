@@ -1,6 +1,7 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
+using Avalonia.VisualTree;
 
 namespace Laminar.Avalonia.SelectAndMove;
 
@@ -78,8 +79,8 @@ public class BackgroundGridLines : Control
             _minorLinePen.Brush = LineBrush;
         }
 
-        Rect drawingBounds = GetRectInLocal(Parent!.Bounds);
-        Vector renderScale = drawingBounds.Size / Parent.Bounds.Size;
+        Rect drawingBounds = GetRectInLocal(this.GetVisualParent()!.Bounds);
+        Vector renderScale = drawingBounds.Size / this.GetVisualParent()!.Bounds.Size;
 
         // Mutliplying by xRenderScale ensures the line thickness remains constant from the perspective of the parent
         _majorLinePen.Thickness = MajorLineThickness * renderScale.X;

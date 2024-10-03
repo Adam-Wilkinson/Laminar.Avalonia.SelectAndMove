@@ -2,20 +2,19 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+		xmlns:sys="clr-namespace:System;assembly=mscorlib"
 		xmlns:sam = "clr-namespace:Laminar.Avalonia.SelectAndMove;assembly=Laminar.Avalonia.SelectAndMove"
         mc:Ignorable="d" d:DesignWidth="1500" d:DesignHeight="1000"
         x:Class="Laminar.Avalonia.SelectAndMove.Example.MainWindow"
         Title="Laminar.Avalonia.SelectAndMove.Example">
 	<DockPanel 
 		VerticalAlignment="Stretch" 
-		HorizontalAlignment="Stretch"
-		Background="LightGray">
+		HorizontalAlignment="Stretch">
 
 		<Grid
 			Margin="20"
 			ColumnDefinitions="*,*"
 			RowDefinitions="auto,auto,auto,auto,auto,auto,auto,auto,auto,auto,auto,auto,auto,auto,auto,auto,auto"
-			Background="LightGray" 
 			Width="400">
 
 			<TextBlock
@@ -103,30 +102,30 @@
 				Grid.Row="11" Grid.Column="0"
 				Text="Snap Mode: "/>	
 			
-			<ComboBox
+			<ComboBox Name="SnapModeSelector"
 				Grid.Row="11" Grid.Column="1"
 				HorizontalAlignment="Stretch"
-				Items="{x:Static sam:SelectAndMove.AllSnapModes}"
+				ItemsSource="{Binding AllSnapModes}"
 				SelectedItem="{Binding #ExampleSelectAndMove.SnapMode, Mode=TwoWay}"/>
 
 			<TextBlock
 				Grid.Row="12" Grid.Column="0"
 				Text="Pan Mouse Button: "/>
 
-			<ComboBox
+			<ComboBox Name="PanButtonSelector"
 				HorizontalAlignment="Stretch"
 				Grid.Row="12" Grid.Column="1"
-				Items="{x:Static sam:SelectAndMove.AllMouseButtons}"
+				ItemsSource="{Binding AllMouseButtons}"
 				SelectedItem="{Binding #ExampleSelectAndMove.PanMouseButton, Mode=TwoWay}"/>
 
 			<TextBlock
 				Grid.Row="13" Grid.Column="0"
 				Text="Box Select Button: "/>
 
-			<ComboBox
+			<ComboBox Name="BoxSelectButtonSelector"
 				HorizontalAlignment="Stretch"
 				Grid.Row="13" Grid.Column="1"
-				Items="{x:Static sam:SelectAndMove.AllMouseButtons}"
+				ItemsSource="{Binding AllMouseButtons}"
 				SelectedItem="{Binding #ExampleSelectAndMove.BoxSelectMouseButton, Mode=TwoWay}"/>
 			
 			<Button
@@ -135,28 +134,24 @@
 				Margin="0,20,0,0"
 				Command="{Binding #ExampleSelectAndMove.ResetView}"
 				Content="Reset View"/>
-			
+
 			<Button
 				Grid.Row="15" Grid.ColumnSpan="2"
 				HorizontalAlignment="Stretch"
 				Margin="0,0,0,20"
-				Command="{Binding #ExampleSelectAndMove.FitViewToChildren}"
+				Command="{Binding FitToControls}"
 				CommandParameter="10"
-				Content="Fit view to controls"/>
-			
-			
+				Content="Fit view to controls">
+			</Button>
 			
 			<StackPanel
 				Grid.Row="16" Grid.ColumnSpan="2"
-				Orientation="Vertical" 
-				Background="LightGray">
+				Orientation="Vertical">
 				
 				<TextBlock	
 					Padding="5"
 					Text="Selected Controls:"/>
-				
-				<ListBox	
-					Items="{Binding SelectedControls}"/>
+				<ListBox ItemsSource="{Binding SelectedControls}"/>
 			</StackPanel>
 		</Grid>
 		

@@ -2,14 +2,15 @@
 using Avalonia.Controls;
 using Avalonia.Controls.Shapes;
 using Avalonia.Input;
+using Avalonia.Input.GestureRecognizers;
 using Avalonia.Media;
 using Avalonia.Platform;
 
 namespace Laminar.Avalonia.SelectAndMove.GestureRecognizers;
 
-public class BoxSelectGesture : GestureRecognizerBase
+public class BoxSelectGesture : GestureRecognizer
 {
-    public static readonly StyledProperty<KeyModifiers> SelectManyKeyModifiersProperty = 
+    public static readonly StyledProperty<KeyModifiers> SelectManyKeyModifiersProperty =
         SelectGesture.SelectManyKeyModifiersProperty.AddOwner<SelectGesture>();
 
     public static readonly StyledProperty<Rectangle> SelectionBoxProperty =
@@ -18,8 +19,9 @@ public class BoxSelectGesture : GestureRecognizerBase
     public static readonly StyledProperty<MouseButton> BoxSelectMouseButtonProperty =
         AvaloniaProperty.Register<BoxSelectGesture, MouseButton>(nameof(BoxSelectMouseButton), MouseButton.Left);
 
-    bool childAdded = false;
-    Point startingPoint = new();
+    bool _selectionBoxAdded = false;
+    Point _startingPoint = new();
+    IPointer? _capturedPointer = null;
 
     public KeyModifiers SelectManyKeyModifiers
     {
@@ -39,45 +41,41 @@ public class BoxSelectGesture : GestureRecognizerBase
         set => SetValue(BoxSelectMouseButtonProperty, value);
     }
 
-    public override void PointerPressed(PointerPressedEventArgs e)
+    protected override void PointerPressed(PointerPressedEventArgs e)
     {
-        if (!ButtonIsPressed(e.GetCurrentPoint(Target).Properties, BoxSelectMouseButton))
+        if (e.Pointer is not Pointer pointer || pointer.IsGestureRecognitionSkipped || Target is not Canvas targetCanvas || !ButtonIsPressed(e.GetCurrentPoint(targetCanvas).Properties, BoxSelectMouseButton))
         {
             return;
         }
 
-        if (Target is not Canvas)
-        {
-            return;
-        }
-
-        Track(e.Pointer);
+        Capture(e.Pointer);
+        _capturedPointer = e.Pointer;
 
         SelectAndMove.SetIsSelectable(SelectionBox, false);
-        startingPoint = e.GetPosition(Target);
+        _startingPoint = e.GetPosition(targetCanvas);
     }
 
-    protected override void TrackedPointerMoved(PointerEventArgs e)
+    protected override void PointerMoved(PointerEventArgs e)
     {
-        if (Target is not Canvas targetCanvas)
+        if (Target is not Canvas targetCanvas || e.Pointer != _capturedPointer)
         {
             return;
         }
 
-        if (!childAdded)
+        if (!_selectionBoxAdded)
         {
             targetCanvas.Children.Add(SelectionBox);
-            childAdded = true;
+            _selectionBoxAdded = true;
         }
 
-        Rect selectionRect = new Rect(startingPoint, e.GetPosition(Target)).Normalize();
+        Rect selectionRect = new Rect(_startingPoint, e.GetPosition(targetCanvas)).Normalize();
 
         Canvas.SetLeft(SelectionBox, selectionRect.Left);
         Canvas.SetTop(SelectionBox, selectionRect.Top);
         SelectionBox.Width = selectionRect.Width;
         SelectionBox.Height = selectionRect.Height;
 
-        foreach (IControl control in targetCanvas.Children)
+        foreach (Control control in targetCanvas.Children)
         {
             if (e.KeyModifiers != SelectManyKeyModifiers)
             {
@@ -91,18 +89,34 @@ public class BoxSelectGesture : GestureRecognizerBase
         }
     }
 
-    protected override void EndGesture()
+    protected override void PointerReleased(PointerReleasedEventArgs e)
     {
-        if (Target is IPanel targetPanel)
+        _capturedPointer = null;
+    }
+
+    protected override void PointerCaptureLost(IPointer pointer)
+    {
+        EndGesture();
+    }
+
+    private void EndGesture()
+    {
+        if (Target is Panel targetPanel)
         {
             targetPanel.Children.Remove(SelectionBox);
-            childAdded = false;
+            _capturedPointer = null;
+            _selectionBoxAdded = false;
         }
     }
 
-    private bool BoxIntersectsControl(Rect selectionRect, IControl control)
+    private bool BoxIntersectsControl(Rect selectionRect, Control control)
     {
-        Rect rectInLocal = selectionRect.TransformToAABB(Target.TransformToVisual(control)!.Value);
+        if (Target is not Visual visualTarget)
+        {
+            return false;
+        }
+
+        Rect rectInLocal = selectionRect.TransformToAABB(visualTarget.TransformToVisual(control)!.Value);
 
         if (control is ICustomHitResolver customHitResolver)
         {
@@ -111,11 +125,8 @@ public class BoxSelectGesture : GestureRecognizerBase
 
         if (control is Shape shape && shape.DefiningGeometry is Geometry shapeGeometry)
         {
-            IPlatformRenderInterface? factory = AvaloniaLocator.Current.GetService<IPlatformRenderInterface>();
-
-            IGeometryImpl rectGeometryImpl = factory!.CreateRectangleGeometry(rectInLocal);
-            IGeometryImpl rectAndShapeIntersect = shapeGeometry.PlatformImpl.Intersect(rectGeometryImpl);
-            return rectAndShapeIntersect.Bounds.Width > 0 || rectAndShapeIntersect.Bounds.Height > 0;
+            Geometry intersection = Geometry.Combine(shapeGeometry, new RectangleGeometry(rectInLocal), GeometryCombineMode.Intersect);
+            return intersection.Bounds.Width > 0 || intersection.Bounds.Height > 0;
         }
 
         return new Rect(control.Bounds.Size).Intersects(rectInLocal);

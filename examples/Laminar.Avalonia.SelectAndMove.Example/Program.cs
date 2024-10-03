@@ -2,6 +2,7 @@ using System;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.ReactiveUI;
 
 namespace Laminar.Avalonia.SelectAndMove.Example;
 internal class Program
@@ -17,5 +18,7 @@ internal class Program
     public static AppBuilder BuildAvaloniaApp()
         => AppBuilder.Configure<App>()
             .UsePlatformDetect()
-            .LogToTrace();
+            .WithInterFont()
+            .LogToTrace()
+            .UseReactiveUI();
 }

@@ -1,12 +1,14 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Input.GestureRecognizers;
+using Avalonia.LogicalTree;
 using Avalonia.Media;
 using Avalonia.VisualTree;
 
 namespace Laminar.Avalonia.SelectAndMove.GestureRecognizers;
 
-public class ZoomGesture : GestureRecognizerBase
+public class ZoomGesture : GestureRecognizer
 {
     public static readonly StyledProperty<double> ZoomSpeedProperty = 
         AvaloniaProperty.Register<ZoomGesture, double>(nameof(ZoomSpeed), 1.0);
@@ -14,22 +16,38 @@ public class ZoomGesture : GestureRecognizerBase
     public static readonly StyledProperty<double> CurrentZoomProperty =
         AvaloniaProperty.Register<ZoomGesture, double>(nameof(CurrentZoom), 1.0);
 
-    private readonly Dictionary<IVisual, BoundsChangedObserver> _boundsTrackers = new();
+    public static readonly StyledProperty<Control?> ScrollWheelListenerProperty =
+        AvaloniaProperty.Register<ZoomGesture, Control?>(nameof(ScrollWheelListener), null);
+
+    private readonly Dictionary<Visual, BoundsChangedObserver> _boundsTrackers = new();
 
     private Point? _zoomCenter;
 
     static ZoomGesture()
     {
+        ScrollWheelListenerProperty.Changed.AddClassHandler<ZoomGesture>((zoomGesture, changedArgs) =>
+        {  
+            if (changedArgs.OldValue is Control oldControl)
+            {
+                oldControl.PointerWheelChanged -= zoomGesture.Target_PointerWheelChanged;
+            }
+
+            if (changedArgs.NewValue is Control newControl)
+            {
+                newControl.PointerWheelChanged += zoomGesture.Target_PointerWheelChanged;
+            }
+        });
+
         CurrentZoomProperty.Changed.AddClassHandler<ZoomGesture>((o, e) =>
         {
             if (e.NewValue is not double newZoom 
             || e.OldValue is not double oldZoom 
-            || o.Target is null)
+            || o.Target is not Visual targetVisual)
             {
                 return;
             }
 
-            o.ZoomByDelta(newZoom / oldZoom, o._zoomCenter ?? o.Target.Bounds.Center - o.Target.Bounds.TopLeft);
+            o.ZoomByDelta(newZoom / oldZoom, o._zoomCenter ?? targetVisual.Bounds.Center - targetVisual.Bounds.TopLeft);
         });
     }
     
@@ -48,41 +66,55 @@ public class ZoomGesture : GestureRecognizerBase
         set => SetValue(CurrentZoomProperty, value);
     }
 
-    public override void PointerPressed(PointerPressedEventArgs e)
+    public Control? ScrollWheelListener
+    {
+        get => GetValue(ScrollWheelListenerProperty);
+        set => SetValue(ScrollWheelListenerProperty, value);
+    }
+
+    protected override void PointerPressed(PointerPressedEventArgs e)
     {
     }
 
-    protected override void TrackedPointerMoved(PointerEventArgs e)
+    protected override void PointerMoved(PointerEventArgs e)
     {
     }
 
-    protected override void PostInitialize()
+    protected override void PointerCaptureLost(IPointer pointer)
     {
-        Target!.PointerWheelChanged += Target_PointerWheelChanged;
+    }
+
+    protected override void PointerReleased(PointerReleasedEventArgs e)
+    {
     }
 
     private void Target_PointerWheelChanged(object? sender, PointerWheelEventArgs e)
     {
-        double zoomAmount = Math.Exp(ZoomSpeed * e.Delta.Y / 5);
-        _zoomCenter = e.GetPosition(Target);
-        CurrentZoom *= zoomAmount;
-        _zoomCenter = null;
-
-        Target!.InvalidateVisual();
-    }
-
-    private void ZoomByDelta(double delta, Point positionInParent)
-    {
-        if (Target is not IPanel targetPanel)
+        if (Target is not Visual targetVisual)
         {
             return;
         }
 
-        foreach (IControl control in targetPanel.Children)
+        double zoomAmount = Math.Exp(ZoomSpeed * e.Delta.Y / 5);
+        _zoomCenter = e.GetPosition(targetVisual);
+        CurrentZoom *= zoomAmount;
+        _zoomCenter = null;
+
+        targetVisual.InvalidateVisual();
+    }
+
+    private void ZoomByDelta(double delta, Point positionInParent)
+    {
+        if (Target is not Panel targetPanel)
+        {
+            return;
+        }
+
+        foreach (Control control in targetPanel.Children)
         {
             control.RenderTransform ??= new MatrixTransform(Matrix.Identity);
 
-            Matrix myScaleMatrix2 = GetTransform(control, Target, positionInParent, delta);
+            Matrix myScaleMatrix2 = GetTransform(control, targetPanel, positionInParent, delta);
 
             control.RenderTransform = new MatrixTransform(myScaleMatrix2 * control.RenderTransform.Value);
 
@@ -95,10 +127,10 @@ public class ZoomGesture : GestureRecognizerBase
             }
         }
 
-        Target.InvalidateVisual();
+        targetPanel.InvalidateVisual();
     }
 
-    public static Matrix GetTransform(IControl control, IVisual parent, Point centerInParent, double scale)
+    public static Matrix GetTransform(Control control, Visual parent, Point centerInParent, double scale)
     {
         Point positionInLocal = centerInParent * parent.TransformToVisual(control)!.Value;
         return ScaleAt(scale, positionInLocal.X - control.Bounds.Width / 2, positionInLocal.Y - control.Bounds.Height / 2);
@@ -111,7 +143,7 @@ public class ZoomGesture : GestureRecognizerBase
 
     private class BoundsChangedObserver : IObserver<AvaloniaPropertyChangedEventArgs>
     {
-        public IVisual? TrackedVisual { get; init; }
+        public Visual? TrackedVisual { get; init; }
 
         public void OnCompleted() { }
         public void OnError(Exception error) { }

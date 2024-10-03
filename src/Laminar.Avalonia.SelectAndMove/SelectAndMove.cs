@@ -11,15 +11,11 @@ namespace Laminar.Avalonia.SelectAndMove;
 
 public class SelectAndMove : Canvas
 {
-    public static MouseButton[] AllMouseButtons { get; } = (MouseButton[])Enum.GetValues(typeof(MouseButton));
+    public static readonly AttachedProperty<bool> IsSelectedProperty = AvaloniaProperty.RegisterAttached<SelectAndMove, AvaloniaObject, bool>("IsSelected", false);
 
-    public static SnapMode[] AllSnapModes { get; } = (SnapMode[])Enum.GetValues(typeof(SnapMode));
+    public static readonly AttachedProperty<bool> IsSelectableProperty = AvaloniaProperty.RegisterAttached<SelectAndMove, AvaloniaObject, bool>("IsSelectable", true);
 
-    public static readonly AttachedProperty<bool> IsSelectedProperty = AvaloniaProperty.RegisterAttached<SelectAndMove, IAvaloniaObject, bool>("IsSelected", false);
-
-    public static readonly AttachedProperty<bool> IsSelectableProperty = AvaloniaProperty.RegisterAttached<SelectAndMove, IAvaloniaObject, bool>("IsSelectable", true);
-
-    public static readonly AttachedProperty<bool> IsMovableProperty = AvaloniaProperty.RegisterAttached<SelectAndMove, IAvaloniaObject, bool>("IsMovable", true);
+    public static readonly AttachedProperty<bool> IsMovableProperty = AvaloniaProperty.RegisterAttached<SelectAndMove, AvaloniaObject, bool>("IsMovable", true);
 
     public static readonly StyledProperty<KeyModifiers> SelectManyKeyModifiersProperty = SelectGesture.SelectManyKeyModifiersProperty.AddOwner<SelectAndMove>();
 
@@ -37,17 +33,17 @@ public class SelectAndMove : Canvas
 
     public static readonly StyledProperty<SnapMode> SnapModeProperty = MoveSelectionGesture.SnapModeProperty.AddOwner<SelectAndMove>();
 
-    public static bool GetIsSelected(IAvaloniaObject element) => element.GetValue(IsSelectedProperty);
+    public static bool GetIsSelected(AvaloniaObject element) => element.GetValue(IsSelectedProperty);
 
-    public static void SetIsSelected(IAvaloniaObject element, bool value) => element.SetValue(IsSelectedProperty, value);
+    public static void SetIsSelected(AvaloniaObject element, bool value) => element.SetValue(IsSelectedProperty, value);
 
-    public static bool GetIsSelectable(IAvaloniaObject element) => element.GetValue(IsSelectableProperty);
+    public static bool GetIsSelectable(AvaloniaObject element) => element.GetValue(IsSelectableProperty);
 
-    public static void SetIsSelectable(IAvaloniaObject element, bool value) => element.SetValue(IsSelectableProperty, value);
+    public static void SetIsSelectable(AvaloniaObject element, bool value) => element.SetValue(IsSelectableProperty, value);
 
-    public static bool GetIsMovable(IAvaloniaObject element) => element.GetValue(IsMovableProperty);
+    public static bool GetIsMovable(AvaloniaObject element) => element.GetValue(IsMovableProperty);
 
-    public static void SetIsMovable(IAvaloniaObject element, bool value) => element.SetValue(IsMovableProperty, value);
+    public static void SetIsMovable(AvaloniaObject element, bool value) => element.SetValue(IsMovableProperty, value);
 
     static SelectAndMove()
     {
@@ -81,6 +77,7 @@ public class SelectAndMove : Canvas
         GestureRecognizers.Add(new ZoomGesture { 
             [!ZoomGesture.ZoomSpeedProperty] = this[!ZoomSpeedProperty],
             [!ZoomGesture.CurrentZoomProperty] = this[(!CurrentZoomProperty).WithMode(BindingMode.TwoWay)],
+            ScrollWheelListener = this,
         });
     }
 
@@ -136,7 +133,7 @@ public class SelectAndMove : Canvas
     {
         CurrentZoom = 1.0;
 
-        foreach (IControl control in Children)
+        foreach (Control control in Children)
         {
             control.RenderTransform = new MatrixTransform();
         }
@@ -144,13 +141,9 @@ public class SelectAndMove : Canvas
 
     public void FitViewToChildren(double margin)
     {
-        Rect overallBounds = Rect.Empty;
-        foreach (IControl control in Children)
+        Rect overallBounds = new(0, 0, 0, 0);
+        foreach (Control control in Children)
         {
-            if (control.Bounds.Size.IsDefault)
-            {
-                continue;
-            }
             overallBounds = overallBounds.Union(control.Bounds);
         }
 
@@ -171,7 +164,7 @@ public class SelectAndMove : Canvas
         Size offsetFromTopLeft = (bounds.Size - newView.Size) / 2;
         Point topLeft = newView.TopLeft - new Point(offsetFromTopLeft.Width, offsetFromTopLeft.Height);
 
-        foreach (IControl control in Children)
+        foreach (Control control in Children)
         {
             control.RenderTransform = new MatrixTransform(Matrix.CreateTranslation(-topLeft));
             Matrix controlTransform = ZoomGesture.GetTransform(control, this, bounds.Center - bounds.TopLeft, zoomAmount) * control.RenderTransform.Value;

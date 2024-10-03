@@ -157,8 +157,7 @@
 		
 		<sam:SelectAndMove 
 			Name="ExampleSelectAndMove" 
-			SnapGrid = "{Binding #BackgroundLines.SnapGrid}"
-			Background="White">
+			SnapGrid = "{Binding #BackgroundLines.SnapGrid}">
 			
 			<sam:SelectAndMove.SelectionBox>
 				<Rectangle 
@@ -168,15 +167,17 @@
 			
 			<sam:BackgroundGridLines 
 				Name="BackgroundLines" 
-				LineBrush="LightGray"/>
+				Opacity="0.3"
+				LineBrush="Gray"/>
 			
 			<TextBlock 
 				Name="Unselectable" 
 				Canvas.Left="10" 
 				Canvas.Top="30" 
-				Background="LightGray" 
+				Background="Chocolate" 
 				Padding="10" 
 				sam:SelectAndMove.IsSelectable="False"
+				FontWeight="Bold"
 				Text="This can't be selected"/>
 			
 			<Rectangle 
@@ -207,6 +208,7 @@
 				<TextBlock 
 					HorizontalAlignment="Center" 
 					VerticalAlignment="Center"
+					FontWeight="Bold"
 					Text="This is a more complex control"/>
 			</Panel>
 			
@@ -214,23 +216,35 @@
 				Name="Unmovable" 
 				Canvas.Left="50" 
 				Canvas.Top="300" 
-				Background="Beige" 
+				Background="MediumVioletRed" 
 				Padding="20" 
 				sam:SelectAndMove.IsMovable="False"
+				FontWeight="Bold"
 				Text="This can't be moved"/>
 			
 			<TextBlock 
+				Name="InterestingSelection"
 				Canvas.Left="200" 
 				Canvas.Top="0" 
 				Padding="10" 
-				Background="AliceBlue" 
-				Name="SelectAndMoveText"
+				Background="Brown" 
+				FontWeight="Bold"
 				Text="You can change any styled property on selection"/>
 		</sam:SelectAndMove>
 	</DockPanel>
 
 	<Window.Styles>
 		<Styles>
+			<Style Selector="TextBlock#Unmovable">
+				<Style Selector="^[(sam|SelectAndMove.IsSelected)=False]">
+					<Setter Property="Opacity" Value="1.0"/>
+				</Style>
+				
+				<Style Selector="^[(sam|SelectAndMove.IsSelected)=True]">
+					<Setter Property="Opacity" Value="0.6"/>
+				</Style>
+			</Style>
+
 			<Style Selector=":is(Shape)[(sam|SelectAndMove.IsSelected)=true]">
 				<Setter Property="Stroke" Value="Red"/>
 				<Setter Property="StrokeThickness" Value="3"/>
@@ -241,12 +255,12 @@
 				<Setter Property="StrokeThickness" Value="0"/>
 			</Style>
 
-			<Style Selector="TextBlock#SelectAndMoveText[(sam|SelectAndMove.IsSelected)=true]">
-				<Setter Property="Foreground" Value="Red"/>
+			<Style Selector="TextBlock#InterestingSelection[(sam|SelectAndMove.IsSelected)=true]">
+				<Setter Property="Foreground" Value="Gray"/>
 			</Style>
 
-			<Style Selector="TextBlock#SelectAndMoveText[(sam|SelectAndMove.IsSelected)=false]">
-				<Setter Property="Foreground" Value="Black"/>
+			<Style Selector="TextBlock#InterestingSelection[(sam|SelectAndMove.IsSelected)=false]">
+				<Setter Property="Foreground" Value="{DynamicResource ThemeForegroundBrush}"/>
 			</Style>
 			
 			<Style Selector="Panel#EllipseWithText[(sam|SelectAndMove.IsSelected)=true] Ellipse">
@@ -254,7 +268,7 @@
 			</Style>
 
 			<Style Selector="Panel#EllipseWithText[(sam|SelectAndMove.IsSelected)=false] Ellipse">
-				<Setter Property="Fill" Value="LightCyan"/>
+				<Setter Property="Fill" Value="Olive"/>
 			</Style>
 
 			<Style Selector=":is(Separator)">

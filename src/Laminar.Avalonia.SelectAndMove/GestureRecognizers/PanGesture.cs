@@ -22,9 +22,9 @@ public class PanGesture : GestureRecognizer
     
     protected override void PointerPressed(PointerPressedEventArgs e)
     {
-        if (e.Pointer is not Pointer { IsGestureRecognitionSkipped: false } || Target is not Panel targetPanel ||
-            !ButtonIsPressed(e.GetCurrentPoint(targetPanel).Properties, PanMouseButton) ||
-            targetPanel.Children.Count <= 0) return;
+        if (e.Pointer is not Pointer { IsGestureRecognitionSkipped: false } 
+            || !ButtonIsPressed(e.GetCurrentPoint(null).Properties, PanMouseButton)) 
+            return;
         
         Capture(e.Pointer);
         _capturedPointer = e.Pointer;
@@ -33,20 +33,15 @@ public class PanGesture : GestureRecognizer
 
     protected override void PointerMoved(PointerEventArgs e)
     {
-        if (Target is not Panel targetPanel || e.Pointer != _capturedPointer)
-        {
-            return;
-        }
+        if (Target is not ItemsControl targetItemsControl)
+            throw new InvalidOperationException("This gesture is only valid on an ItemsControl");
 
-        foreach (Control control in targetPanel.Children)
-        {
-            control.RenderTransform ??= new MatrixTransform(Matrix.Identity);
-            Vector controlDelta = e.GetPosition(control) - _previousPositionArgs!.GetPosition(control);
-            control.RenderTransform = new MatrixTransform(new Matrix(1.0, 0.0, 0.0, 1.0, controlDelta.X, controlDelta.Y) * control.RenderTransform.Value);
-            control.InvalidateVisual();
-        }
-
-        targetPanel.InvalidateVisual();
+        if (e.Pointer != _capturedPointer || targetItemsControl.ItemsPanelRoot is not { } panel) return;
+        
+        panel.RenderTransform ??= new MatrixTransform(Matrix.Identity);
+        Vector changeInTransform = e.GetPosition(panel) - _previousPositionArgs!.GetPosition(panel);
+        panel.RenderTransform = new MatrixTransform(new Matrix(1, 0, 0, 1, changeInTransform.X, changeInTransform.Y) * panel.RenderTransform.Value);
+        panel.InvalidateVisual();
         _previousPositionArgs = e;
     }
 

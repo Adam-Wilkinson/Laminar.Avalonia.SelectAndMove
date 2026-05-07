@@ -112,7 +112,7 @@ public class BoxSelectGesture : GestureRecognizer
         }
 
         Rect intersectRect =
-            new Rect(_originalClick.GetPosition(_workingPanel), e.GetPosition(_workingPanel)).Normalize(); 
+            new Rect(_originalClick.GetPosition(target), e.GetPosition(target)).Normalize(); 
         
         foreach (Control control in _workingPanel.Children
                      .Where(control => Selection.GetIsSelectable(control) && BoxIntersectsControl(intersectRect, control)))

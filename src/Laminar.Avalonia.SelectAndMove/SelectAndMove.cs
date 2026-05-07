@@ -1,6 +1,4 @@
-﻿using System.Collections.Specialized;
-using Avalonia;
-using Avalonia.Collections;
+﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Primitives;
@@ -10,7 +8,6 @@ using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Markup.Xaml.Styling;
-using Avalonia.Markup.Xaml.Templates;
 using Avalonia.Media;
 using Laminar.Avalonia.SelectAndMove.GestureRecognizers;
 

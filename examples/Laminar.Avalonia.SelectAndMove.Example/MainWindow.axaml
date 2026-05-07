@@ -2,10 +2,11 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-		xmlns:sys="clr-namespace:System;assembly=mscorlib"
-		xmlns:sam = "clr-namespace:Laminar.Avalonia.SelectAndMove;assembly=Laminar.Avalonia.SelectAndMove"
+		xmlns:loc="using:Laminar.Avalonia.SelectAndMove.Example"
+		xmlns:sam = "using:Laminar.Avalonia.SelectAndMove"
         mc:Ignorable="d" d:DesignWidth="1500" d:DesignHeight="1000"
         x:Class="Laminar.Avalonia.SelectAndMove.Example.MainWindow"
+        x:DataType="loc:MainWindow"
         Title="Laminar.Avalonia.SelectAndMove.Example">
 	<DockPanel 
 		VerticalAlignment="Stretch" 
@@ -39,14 +40,14 @@
 				HorizontalAlignment="Right"
 				Text="{Binding #BackgroundLines.MajorLineSeparation}"/>
 			
-			<Slider
-				Grid.Row="2" Grid.ColumnSpan="2"
+			<Slider 
+				Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
 				Value="{Binding #BackgroundLines.MajorLineSeparation, Mode=TwoWay}" 
 				Minimum="10" Maximum="500"/>
 			
 			<TextBlock
-				Margin="0,20,0,0"
 				Grid.Row="3" Grid.Column="0"
+				Margin="0,20,0,0"
 				Text="Major Line Thickness: "/>
 				
 			<TextBlock
@@ -56,12 +57,12 @@
 				Text="{Binding #BackgroundLines.MajorLineThickness}"/>
 			
 			<Slider
-				Grid.Row="4" Grid.ColumnSpan="2"
+				Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2"
 				Value="{Binding #BackgroundLines.MajorLineThickness, Mode=TwoWay}" 
 				Minimum="0.1" Maximum="10"/>
 			
 			<Separator  
-				Grid.ColumnSpan="2" Grid.Row="5"/>
+				Grid.ColumnSpan="2" Grid.Column="0" Grid.Row="5"/>
 			
 			<TextBlock
 				Grid.Row="6" Grid.Column="0"
@@ -75,7 +76,7 @@
 				Text="{Binding #ExampleSelectAndMove.ZoomSpeed}"/>
 			
 			<Slider
-				Grid.Row="7" Grid.ColumnSpan="2"
+				Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="2"
 				Value="{Binding #ExampleSelectAndMove.ZoomSpeed, Mode=TwoWay}" 
 				Minimum="0.1" Maximum="5"/>
 
@@ -91,12 +92,12 @@
 				Text="{Binding #ExampleSelectAndMove.CurrentZoom}"/>
 
 			<Slider
-				Grid.Row="9" Grid.ColumnSpan="2"
+				Grid.Row="9" Grid.Column="0" Grid.ColumnSpan="2"
 				Value="{Binding #ExampleSelectAndMove.CurrentZoom, Mode=TwoWay}"
 				Minimum="0.2" Maximum="5"/>
 			
 			<Separator
-				Grid.Row="10" Grid.ColumnSpan="2"/>
+				Grid.Row="10" Grid.Column="0" Grid.ColumnSpan="2"/>
 				
 			<TextBlock
 				Grid.Row="11" Grid.Column="0"
@@ -105,7 +106,7 @@
 			<ComboBox Name="SnapModeSelector"
 				Grid.Row="11" Grid.Column="1"
 				HorizontalAlignment="Stretch"
-				ItemsSource="{Binding AllSnapModes}"
+				ItemsSource="{x:Static loc:MainWindow.AllSnapModes}"
 				SelectedItem="{Binding #ExampleSelectAndMove.SnapMode, Mode=TwoWay}"/>
 
 			<TextBlock
@@ -115,7 +116,7 @@
 			<ComboBox Name="PanButtonSelector"
 				HorizontalAlignment="Stretch"
 				Grid.Row="12" Grid.Column="1"
-				ItemsSource="{Binding AllMouseButtons}"
+				ItemsSource="{x:Static loc:MainWindow.AllMouseButtons}"
 				SelectedItem="{Binding #ExampleSelectAndMove.PanMouseButton, Mode=TwoWay}"/>
 
 			<TextBlock
@@ -125,27 +126,29 @@
 			<ComboBox Name="BoxSelectButtonSelector"
 				HorizontalAlignment="Stretch"
 				Grid.Row="13" Grid.Column="1"
-				ItemsSource="{Binding AllMouseButtons}"
+				ItemsSource="{x:Static loc:MainWindow.AllMouseButtons}"
 				SelectedItem="{Binding #ExampleSelectAndMove.BoxSelectMouseButton, Mode=TwoWay}"/>
 			
 			<Button
-				Grid.Row="14" Grid.ColumnSpan="2"
+				Grid.Row="14" Grid.Column="0" Grid.ColumnSpan="2"
 				HorizontalAlignment="Stretch"
 				Margin="0,20,0,0"
 				Command="{Binding #ExampleSelectAndMove.ResetView}"
 				Content="Reset View"/>
 
 			<Button
-				Grid.Row="15" Grid.ColumnSpan="2"
+				Grid.Row="15" Grid.Column="0" Grid.ColumnSpan="2"
 				HorizontalAlignment="Stretch"
 				Margin="0,0,0,20"
-				Command="{Binding FitToControls}"
-				CommandParameter="10"
+				Command="{Binding FitToControlsCommand}"
 				Content="Fit view to controls">
+				<Button.CommandParameter>
+					<x:Double>10</x:Double>
+				</Button.CommandParameter>
 			</Button>
 			
 			<StackPanel
-				Grid.Row="16" Grid.ColumnSpan="2"
+				Grid.Row="16" Grid.Column="0" Grid.ColumnSpan="2"
 				Orientation="Vertical">
 				
 				<TextBlock	

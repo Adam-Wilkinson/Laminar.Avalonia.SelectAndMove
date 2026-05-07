@@ -1,22 +1,20 @@
 using System;
 using System.Collections.Generic;
-using System.Reactive;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
-using ReactiveUI;
+using Avalonia.Reactive;
+using CommunityToolkit.Mvvm.Input;
 
 namespace Laminar.Avalonia.SelectAndMove.Example;
 public partial class MainWindow : Window
 {
     public static readonly StyledProperty<IEnumerable<string>> SelectedControlsProperty = AvaloniaProperty.Register<MainWindow, IEnumerable<string>>(nameof(SelectedControls));
 
-    public SnapMode[] AllSnapModes { get; } = (SnapMode[])Enum.GetValues(typeof(SnapMode));
+    public static readonly SnapMode[] AllSnapModes = (SnapMode[])Enum.GetValues(typeof(SnapMode));
 
-    public MouseButton[] AllMouseButtons { get; } = (MouseButton[])Enum.GetValues(typeof(MouseButton));
-
-    public ReactiveCommand<object?, Unit> FitToControlsCommand { get; }
-
+    public static readonly MouseButton[] AllMouseButtons = (MouseButton[])Enum.GetValues(typeof(MouseButton));
+    
     public MainWindow()
     {
         DataContext = this;
@@ -26,9 +24,7 @@ public partial class MainWindow : Window
         {
             SelectedControls = GetSelectedControls();
         }));
-
-        FitToControlsCommand = ReactiveCommand.Create<object?>(FitToControls);
-
+        
         SelectedControls = GetSelectedControls();
     }
 
@@ -38,17 +34,10 @@ public partial class MainWindow : Window
         set => SetValue(SelectedControlsProperty, value);
     }
 
-    public void FitToControls(object? marginObject)
+    [RelayCommand]
+    private void FitToControls(double margin)
     {
-        if (marginObject is string marginString && double.TryParse(marginString, out double value))
-        {
-            ExampleSelectAndMove.FitViewToChildren(value);
-        }
-    }
-
-    public bool CanFitToControls(string margin)
-    {
-        return double.TryParse(margin, out _) && ExampleSelectAndMove.Children.Count > 0;
+        ExampleSelectAndMove.FitViewToChildren(margin);
     }
 
     private IEnumerable<string> GetSelectedControls()

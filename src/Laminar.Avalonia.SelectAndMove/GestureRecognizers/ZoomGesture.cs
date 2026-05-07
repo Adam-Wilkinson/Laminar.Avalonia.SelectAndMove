@@ -109,7 +109,7 @@ public class ZoomGesture : GestureRecognizer
 
         if (itemsControlTarget.ItemsPanelRoot is not { } panel || panel.GetVisualParent() is not { } panelParent) return;
         
-        panel.RenderTransform ??= new MatrixTransform(Matrix.Identity);
+        panel.RenderTransform ??= new MatrixTransform();
         Matrix scale = GetTransform(panel, panelParent, positionInParent, delta);
         panel.RenderTransform = new MatrixTransform(scale * panel.RenderTransform.Value);
         panel.InvalidateVisual();

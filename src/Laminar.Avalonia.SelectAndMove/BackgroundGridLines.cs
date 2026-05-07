@@ -1,6 +1,8 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
+using Avalonia.LogicalTree;
 using Avalonia.Media;
+using Avalonia.Reactive;
 using Avalonia.VisualTree;
 
 namespace Laminar.Avalonia.SelectAndMove;
@@ -17,20 +19,19 @@ public class BackgroundGridLines : Control
 
     public static readonly DirectProperty<BackgroundGridLines, Rect> SnapGridProperty = AvaloniaProperty.RegisterDirect<BackgroundGridLines, Rect>(nameof(SnapGrid), o => o.SnapGrid);
 
-    private Rect _snapGrid;
-
     public Rect SnapGrid
     {
-        get { return _snapGrid; }
-        private set { SetAndRaise(SnapGridProperty, ref _snapGrid, value); }
+        get;
+        private set => SetAndRaise(SnapGridProperty, ref field, value);
     }
 
     private readonly Pen _majorLinePen = new();
     private readonly Pen _minorLinePen = new();
+    private readonly List<IDisposable> _renderTransformListeners = [];
 
     static BackgroundGridLines()
     {
-        AffectsRender<BackgroundGridLines>(MajorLineSeparationProperty, MinorLineCountProperty, MajorLineThicknessProperty, LineBrushProperty, RenderTransformProperty);
+        AffectsRender<BackgroundGridLines>(MajorLineSeparationProperty, MinorLineCountProperty, MajorLineThicknessProperty, LineBrushProperty, BoundsProperty, RenderTransformProperty);
         ZIndexProperty.OverrideDefaultValue<BackgroundGridLines>(-1000);
         FocusableProperty.OverrideDefaultValue<BackgroundGridLines>(false);
         IsEnabledProperty.OverrideDefaultValue<BackgroundGridLines>(false);
@@ -63,25 +64,25 @@ public class BackgroundGridLines : Control
 
     public override void Render(DrawingContext context)
     {
-        if (_majorLinePen.Brush != LineBrush)
+        if (!Equals(_majorLinePen.Brush, LineBrush))
         {
             _majorLinePen.Brush = LineBrush;
         }
 
-        if (_majorLinePen.Thickness != MajorLineThickness)
+        if (Math.Abs(_majorLinePen.Thickness - MajorLineThickness) > double.Epsilon)
         {
             _majorLinePen.Thickness = MajorLineThickness;
         }
 
-        if (_minorLinePen.Brush != LineBrush)
+        if (!Equals(_minorLinePen.Brush, LineBrush))
         {
             _minorLinePen.Brush = LineBrush;
         }
 
-        Rect drawingBounds = GetRectInLocal(this.GetVisualParent()!.Bounds);
-        Vector renderScale = drawingBounds.Size / this.GetVisualParent()!.Bounds.Size;
+        Rect drawingBounds = GetRectInLocal((this.GetLogicalParent() as Visual)!.Bounds);
+        Vector renderScale = drawingBounds.Size / (this.GetLogicalParent() as Visual)!.Bounds.Size;
 
-        // Mutliplying by xRenderScale ensures the line thickness remains constant from the perspective of the parent
+        // Multiplying by xRenderScale ensures the line thickness remains constant from the perspective of the parent
         _majorLinePen.Thickness = MajorLineThickness * renderScale.X;
         _minorLinePen.Thickness = _majorLinePen.Thickness * GetMinorLineThicknessScale(renderScale.X);
 
@@ -104,19 +105,50 @@ public class BackgroundGridLines : Control
 
     public double GetMinorLineThicknessScale(double scale) => (Math.Pow(MinorLineCount, TrueModulus(-Math.Log(scale, MinorLineCount) - 0.5, 1)) - 1) / (MinorLineCount - 1);
 
-    public Rect GetSnapGrid(double xScale, double yScale) => new(Bounds.TopLeft, new Size(GetSpacing(xScale), GetSpacing(yScale)));
-
-    //public Rect GetSnapGrid(double xScale, double yScale) => new(Bounds.TopLeft * GetValueOrIdentity(RenderTransform), new Size(GetSpacing(xScale) / xScale, GetSpacing(yScale) / yScale));
-
-    public Rect GetRectInLocal(Rect rect)
+    public double GetSpacing(double scale)
     {
-        Matrix transformToParent = GetValueOrIdentity(RenderTransform).Invert();
-        Point TopLeftInParent = new Point(-Bounds.Left, -Bounds.Top) * transformToParent;
-        Point BottomRightInParent = new Point(rect.Width - Bounds.Left, rect.Height - Bounds.Top) * transformToParent;
-        return new Rect(TopLeftInParent, BottomRightInParent);
+        int subdivisionLevel = (int)Math.Round(Math.Log(scale, MinorLineCount));
+        return MajorLineSeparation * Math.Pow(MinorLineCount, subdivisionLevel - 1);
+    }
+    
+    // We need to keep track of the render transform to our logical parent
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        foreach (var  transformListener in _renderTransformListeners)
+        {
+            transformListener.Dispose();
+        }
+        _renderTransformListeners.Clear();
     }
 
-    public IEnumerable<(double localCoordinate, bool isMajor)> GetLines(double start, double end, double scale)
+    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        foreach (var visualParent in this.GetSelfAndVisualAncestors())
+        {
+            _renderTransformListeners.Add(visualParent.GetObservable(RenderTransformProperty).Subscribe(new AnonymousObserver<ITransform?>(_ =>
+            {
+                InvalidateVisual();
+            })));
+
+            if (Equals(this.GetLogicalParent(), visualParent)) break;
+        }
+        
+        InvalidateVisual();
+    }
+    
+    private Rect GetSnapGrid(double xScale, double yScale) => new(Bounds.TopLeft, new Size(GetSpacing(xScale), GetSpacing(yScale)));
+    
+    private Rect GetRectInLocal(Rect rect)
+    {
+        if (this.GetLogicalParent() is not Visual logicalVisualParent) throw new InvalidOperationException();
+        
+        Matrix transformToParent = this.TransformToVisual(logicalVisualParent)?.Invert() ?? throw new InvalidOperationException();
+        Point topLeftInParent = new Point(-Bounds.Left, -Bounds.Top) * transformToParent;
+        Point bottomRightInParent = new Point(rect.Width - Bounds.Left, rect.Height - Bounds.Top) * transformToParent;
+        return new Rect(topLeftInParent, bottomRightInParent);
+    }
+
+    private IEnumerable<(double localCoordinate, bool isMajor)> GetLines(double start, double end, double scale)
     {
         double trueSpacing = GetSpacing(scale);
         double position = start - (start % trueSpacing);
@@ -126,14 +158,6 @@ public class BackgroundGridLines : Control
             position += trueSpacing;
         }
     }
-
-    public double GetSpacing(double scale)
-    {
-        int subdivisionLevel = (int)Math.Round(Math.Log(scale, MinorLineCount));
-        return MajorLineSeparation * Math.Pow(MinorLineCount, subdivisionLevel - 1);
-    }
-
-    private static Matrix GetValueOrIdentity(ITransform? transform) => transform is null ? Matrix.Identity : transform.Value;
-
-    private static double TrueModulus(double x, double y) => ((x % y) + y) % y;
+    
+    private static double TrueModulus(double x, double y) => (x % y + y) % y;
 }

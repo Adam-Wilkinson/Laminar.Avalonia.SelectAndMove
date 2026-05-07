@@ -38,7 +38,7 @@ public class PanGesture : GestureRecognizer
 
         if (e.Pointer != _capturedPointer || targetItemsControl.ItemsPanelRoot is not { } panel) return;
         
-        panel.RenderTransform ??= new MatrixTransform(Matrix.Identity);
+        panel.RenderTransform ??= new MatrixTransform();
         Vector changeInTransform = e.GetPosition(panel) - _previousPositionArgs!.GetPosition(panel);
         panel.RenderTransform = new MatrixTransform(new Matrix(1, 0, 0, 1, changeInTransform.X, changeInTransform.Y) * panel.RenderTransform.Value);
         panel.InvalidateVisual();

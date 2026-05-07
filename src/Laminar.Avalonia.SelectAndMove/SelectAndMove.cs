@@ -40,8 +40,6 @@ public class SelectAndMove : ItemsControl
     public static bool GetIsMovable(AvaloniaObject element) => element.GetValue(IsMovableProperty);
 
     public static void SetIsMovable(AvaloniaObject element, bool value) => element.SetValue(IsMovableProperty, value);
-
-    private ItemsPresenter? _itemsPresenter;
     
     static SelectAndMove()
     {
@@ -134,12 +132,6 @@ public class SelectAndMove : ItemsControl
         set => SetValue(CurrentZoomProperty, value);
     }
 
-    protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
-    {
-        base.OnApplyTemplate(e);
-        _itemsPresenter = e.NameScope.Find<ItemsPresenter>(ItemsPresenterName);
-    }
-
     protected override void PrepareContainerForItemOverride(Control container, object? item, int index)
     {
         base.PrepareContainerForItemOverride(container, item, index);
@@ -148,23 +140,20 @@ public class SelectAndMove : ItemsControl
 
     public void ResetView()
     {
-        // CurrentZoom = 1.0;
-        //
-        // foreach (Control control in Children)
-        // {
-        //     control.RenderTransform = new MatrixTransform();
-        // }
+        CurrentZoom = 1.0;
+        ItemsPanelRoot?.RenderTransform = new MatrixTransform();
     }
 
     public void FitViewToChildren(double margin)
     {
-        // Rect overallBounds = new(0, 0, 0, 0);
-        // foreach (Control control in Children)
-        // {
-        //     overallBounds = overallBounds.Union(control.Bounds);
-        // }
-        //
-        // FitViewToRect(overallBounds.Inflate(margin));
+        if (ItemsPanelRoot is null) return;
+        Rect overallBounds = new(0, 0, 0, 0);
+        foreach (Control control in ItemsPanelRoot.Children)
+        {
+            overallBounds = overallBounds.Union(control.Bounds);
+        }
+        
+        FitViewToRect(overallBounds.Inflate(margin));
     }
 
     public void FitViewToRect(Rect newView)
@@ -174,6 +163,7 @@ public class SelectAndMove : ItemsControl
 
     public void FitToViewRectWithManualBounds(Rect newView, Rect bounds)
     {
+        if (ItemsPanelRoot is null) return;
         Vector zoomAmounts = bounds.Size / newView.Size;
         double zoomAmount = Math.Min(zoomAmounts.X, zoomAmounts.Y);
         CurrentZoom = zoomAmount;
@@ -181,11 +171,8 @@ public class SelectAndMove : ItemsControl
         Size offsetFromTopLeft = (bounds.Size - newView.Size) / 2;
         Point topLeft = newView.TopLeft - new Point(offsetFromTopLeft.Width, offsetFromTopLeft.Height);
 
-        // foreach (Control control in Children)
-        // {
-        //     control.RenderTransform = new MatrixTransform(Matrix.CreateTranslation(-topLeft));
-        //     Matrix controlTransform = ZoomGesture.GetTransform(control, this, bounds.Center - bounds.TopLeft, zoomAmount) * control.RenderTransform.Value;
-        //     control.RenderTransform = new MatrixTransform(controlTransform);
-        // }
+        ItemsPanelRoot.RenderTransform = new MatrixTransform(Matrix.CreateTranslation(-topLeft));
+        Matrix controlTransform = ZoomGesture.GetTransform(ItemsPanelRoot, this, bounds.Center - bounds.TopLeft, zoomAmount) * ItemsPanelRoot.RenderTransform.Value;
+        ItemsPanelRoot.RenderTransform = new MatrixTransform(controlTransform);
     }
 }

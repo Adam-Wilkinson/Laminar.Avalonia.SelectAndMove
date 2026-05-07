@@ -37,6 +37,8 @@ public class Selection
         
         IsScopeProperty.OverrideDefaultValue<TopLevel>(true);
     }
+
+    public static IAvaloniaReadOnlyList<InputElement> GetSelectionSiblings(InputElement target) => FindScope(target);
     
     public static void ClearSiblings(InputElement target)
     {
@@ -45,6 +47,7 @@ public class Selection
         {
             SetIsSelected(child, false);
         }
+        FindScope(target).Clear();
         _isChangingSelection = false;
     }
     

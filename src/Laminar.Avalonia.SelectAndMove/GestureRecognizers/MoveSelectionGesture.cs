@@ -16,11 +16,11 @@ public class MoveSelectionGesture : GestureRecognizer
     public static readonly StyledProperty<SnapMode> SnapModeProperty = 
         AvaloniaProperty.RegisterAttached<MoveSelectionGesture, SnapMode>(nameof(SnapMode), typeof(MoveSelectionGesture), SnapMode.None);
 
-    private readonly List<(Control control, Point originalTopLeft)> _movingControls = new();
+    private readonly List<(InputElement control, Point originalTopLeft)> _moving = [];
 
-    Point _originalClickPoint = new(0, 0);
-    Rect _originalBoundsOfSelection;
-    IPointer? _capturedPointer = null;
+    private Point _originalClickPoint = new(0, 0);
+    private IPointer? _capturedPointer;
+    private Point? _snapPoint;
 
     public Rect SnapGrid
     {
@@ -36,7 +36,7 @@ public class MoveSelectionGesture : GestureRecognizer
 
     protected override void PointerPressed(PointerPressedEventArgs e)
     {
-        if (e.Pointer is not Pointer pointer || pointer.IsGestureRecognitionSkipped || Target is not Panel targetPanel || !e.GetCurrentPoint(targetPanel).Properties.IsLeftButtonPressed)
+        if (e.Pointer is not Pointer pointer || pointer.IsGestureRecognitionSkipped || Target is not InputElement target || !e.GetCurrentPoint(null).Properties.IsLeftButtonPressed)
         {
             return;
         }
@@ -59,22 +59,20 @@ public class MoveSelectionGesture : GestureRecognizer
 
         Capture(e.Pointer);
         _capturedPointer = e.Pointer;
-        _movingControls.Clear();
+        _moving.Clear();
 
-        _originalBoundsOfSelection = new(0, 0, 0, 0);
-        foreach (Control control in targetPanel.Children)
+        var originalBoundsOfSelection = new Rect(0, 0, 0, 0);
+        foreach (var sibling in Selection.GetSelectionSiblings(target).Where(SelectAndMove.GetIsMovable))
         {
-            if (Selection.GetIsSelected(control) && SelectAndMove.GetIsMovable(control))
-            {
-                control.RenderTransform ??= new MatrixTransform();
+            sibling.RenderTransform ??= new MatrixTransform();
 
-                Point controlTopLeftToParent = new(Canvas.GetLeft(control), Canvas.GetTop(control));
-                _originalBoundsOfSelection = _originalBoundsOfSelection.Union(control.Bounds);
-                _movingControls.Add((control, controlTopLeftToParent));
-            }
+            Point controlTopLeftToParent = new(Canvas.GetLeft(sibling), Canvas.GetTop(sibling));
+            originalBoundsOfSelection = originalBoundsOfSelection.Union(sibling.Bounds);
+            _moving.Add((sibling, controlTopLeftToParent));
         }
 
-        _originalClickPoint = e.GetPosition(targetPanel);
+        _snapPoint = GetSnapPoint(originalBoundsOfSelection, SnapMode);
+        _originalClickPoint = e.GetPosition(target);
     }
 
     protected override void PointerMoved(PointerEventArgs e)
@@ -86,19 +84,19 @@ public class MoveSelectionGesture : GestureRecognizer
 
         Point delta = e.GetPosition(visualTarget) - _originalClickPoint;
 
-        foreach ((Control control, Point originalControlTopLeft) in _movingControls)
+        foreach ((InputElement control, Point originalControlTopLeft) in _moving)
         {
             Vector controlScale = (new Point(1, 1) * control.RenderTransform!.Value.Invert()) - (new Point(0, 0) * control.RenderTransform!.Value.Invert());
             Point localMouseDelta = new(delta.X * controlScale.X, delta.Y * controlScale.Y);
-            if (SnapMode == SnapMode.None)
+            if (_snapPoint is not { } snapPoint)
             {
                 Canvas.SetLeft(control, (originalControlTopLeft + localMouseDelta).X);
                 Canvas.SetTop(control, (originalControlTopLeft + localMouseDelta).Y);
                 continue;
             }
 
-            Point offsetFromSnapAnchor = originalControlTopLeft - GetSnapPoint(_originalBoundsOfSelection, SnapMode);
-            Point snapAnchor = GetSnapPoint(_originalBoundsOfSelection, SnapMode) + localMouseDelta;
+            Point offsetFromSnapAnchor = originalControlTopLeft - snapPoint;
+            Point snapAnchor = snapPoint + localMouseDelta;
             Point newPositionOfAnchor = Snap(snapAnchor, SnapGrid);
             // For some reason Avalonia rounds at some point during Canvas.SetTop and Canvas.SetLeft, this stops controls from 'wiggling'
             newPositionOfAnchor = new(Math.Round(newPositionOfAnchor.X), Math.Round(newPositionOfAnchor.Y));
@@ -126,13 +124,13 @@ public class MoveSelectionGesture : GestureRecognizer
     {
     }
 
-    private static Point GetSnapPoint(Rect boundsRect, SnapMode snapMode) => (snapMode) switch
+    private static Point? GetSnapPoint(Rect boundsRect, SnapMode snapMode) => snapMode switch
     {
         SnapMode.TopLeft => boundsRect.TopLeft,
         SnapMode.TopRight => boundsRect.TopRight,
         SnapMode.BottomLeft => boundsRect.BottomLeft,
         SnapMode.BottomRight => boundsRect.BottomRight,
         SnapMode.Center => boundsRect.Center,
-        _ => throw new ArgumentException("SnapMode must not be None to find a snap point", nameof(snapMode)),
+        _ => null,
     };
 }

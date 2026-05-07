@@ -5,6 +5,7 @@ using Avalonia.Controls.Shapes;
 using Avalonia.Input;
 using Avalonia.Input.GestureRecognizers;
 using Avalonia.Media;
+using Avalonia.VisualTree;
 
 namespace Laminar.Avalonia.SelectAndMove.GestureRecognizers;
 
@@ -92,7 +93,8 @@ public class BoxSelectGesture : GestureRecognizer
         if (!_selectionBoxAdded && OverlayLayer.GetOverlayLayer(target) is { } overlayLayer)
         {
             overlayLayer.Children.Add(_drawingCanvas);
-            _selectionBoxAdded = true;       
+            _selectionBoxAdded = true;
+            _drawingCanvas.Clip = new RectangleGeometry(target.Bounds);
         }
         
         Rect drawnRect = new Rect(_originalClick.GetPosition(_drawingCanvas), e.GetPosition(_drawingCanvas))

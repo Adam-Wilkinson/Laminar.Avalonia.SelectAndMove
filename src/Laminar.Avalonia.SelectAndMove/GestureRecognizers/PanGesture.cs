@@ -11,25 +11,24 @@ public class PanGesture : GestureRecognizer
     public static readonly StyledProperty<MouseButton> PanMouseButtonProperty =
         AvaloniaProperty.Register<PanGesture, MouseButton>(nameof(PanMouseButton), MouseButton.Middle);
 
-    PointerEventArgs? _previousPositionArgs;
-    IPointer? _capturedPointer = null;
+    private PointerEventArgs? _previousPositionArgs;
+    private IPointer? _capturedPointer;
 
     public MouseButton PanMouseButton
     {
         get => GetValue(PanMouseButtonProperty);
         set => SetValue(PanMouseButtonProperty, value);
     }
-
-    public Vector CurrentPan { get; private set; } = Vector.Zero;
-
+    
     protected override void PointerPressed(PointerPressedEventArgs e)
     {
-        if (e.Pointer is Pointer pointer && !pointer.IsGestureRecognitionSkipped && Target is Panel targetPanel && ButtonIsPressed(e.GetCurrentPoint(targetPanel).Properties, PanMouseButton) && targetPanel.Children.Count > 0)
-        {
-            Capture(e.Pointer);
-            _capturedPointer = e.Pointer;
-            _previousPositionArgs = e;
-        }
+        if (e.Pointer is not Pointer { IsGestureRecognitionSkipped: false } || Target is not Panel targetPanel ||
+            !ButtonIsPressed(e.GetCurrentPoint(targetPanel).Properties, PanMouseButton) ||
+            targetPanel.Children.Count <= 0) return;
+        
+        Capture(e.Pointer);
+        _capturedPointer = e.Pointer;
+        _previousPositionArgs = e;
     }
 
     protected override void PointerMoved(PointerEventArgs e)

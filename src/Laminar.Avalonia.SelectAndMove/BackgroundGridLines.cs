@@ -34,7 +34,6 @@ public class BackgroundGridLines : Control
         ZIndexProperty.OverrideDefaultValue<BackgroundGridLines>(-1000);
         FocusableProperty.OverrideDefaultValue<BackgroundGridLines>(false);
         IsEnabledProperty.OverrideDefaultValue<BackgroundGridLines>(false);
-        SelectAndMove.IsSelectableProperty.OverrideDefaultValue<BackgroundGridLines>(false);
         ClipToBoundsProperty.OverrideDefaultValue<BackgroundGridLines>(false);
     }
 

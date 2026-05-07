@@ -47,7 +47,7 @@ public class MoveSelectionGesture : GestureRecognizer
             return;
         }
 
-        while (interactiveSource is not null && !(interactiveSource is Control currentControl && SelectAndMove.GetIsSelected(currentControl) && SelectAndMove.GetIsMovable(currentControl)))
+        while (interactiveSource is not null && !(interactiveSource is Control currentControl && Selection.GetIsSelected(currentControl) && SelectAndMove.GetIsMovable(currentControl)))
         {
             interactiveSource = interactiveSource.GetInteractiveParent()!;
         }
@@ -64,7 +64,7 @@ public class MoveSelectionGesture : GestureRecognizer
         _originalBoundsOfSelection = new(0, 0, 0, 0);
         foreach (Control control in targetPanel.Children)
         {
-            if (SelectAndMove.GetIsSelected(control) && SelectAndMove.GetIsMovable(control))
+            if (Selection.GetIsSelected(control) && SelectAndMove.GetIsMovable(control))
             {
                 control.RenderTransform ??= new MatrixTransform();
 

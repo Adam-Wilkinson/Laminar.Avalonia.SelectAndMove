@@ -2,6 +2,7 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Input.GestureRecognizers;
+using Avalonia.VisualTree;
 
 namespace Laminar.Avalonia.SelectAndMove.GestureRecognizers;
 
@@ -9,9 +10,9 @@ public class SelectGesture : GestureRecognizer
 {
     public static readonly StyledProperty<KeyModifiers> SelectManyKeyModifiersProperty = 
         AvaloniaProperty.Register<SelectGesture, KeyModifiers>(nameof(SelectManyKeyModifiers), KeyModifiers.Shift);
-
+    
     private int _maxZIndex = 1;
-
+    
     public KeyModifiers SelectManyKeyModifiers
     {
         get => GetValue(SelectManyKeyModifiersProperty);
@@ -20,29 +21,28 @@ public class SelectGesture : GestureRecognizer
 
     protected override void PointerPressed(PointerPressedEventArgs e)
     {
-        if (Target is not Panel targetPanel || !e.GetCurrentPoint(targetPanel).Properties.IsLeftButtonPressed)
+        if (Target is not InputElement target) return;
+        
+        if (!e.GetCurrentPoint(null).Properties.IsLeftButtonPressed)
         {
             return;
         }
 
-        Control? clickedControl = GetSelectedChildAtPointerPress(e);
-        if (clickedControl is not null && SelectAndMove.GetIsSelected(clickedControl))
+        InputElement? clicked = GetSelectedChildAtPointerPress(e);
+        if (clicked is not null && Selection.GetIsSelected(clicked))
         {
             return;
         }
 
-        if (!(e.KeyModifiers == SelectManyKeyModifiers))
+        if (e.KeyModifiers != SelectManyKeyModifiers)
         {
-            foreach (Control selectedControl in targetPanel.Children)
-            {
-                SelectAndMove.SetIsSelected(selectedControl, false);
-            }
+            Selection.ClearSiblings(target);
         }
 
-        if (clickedControl is not null)
+        if (clicked is not null)
         {
-            clickedControl.ZIndex = _maxZIndex++;
-            SelectAndMove.SetIsSelected(clickedControl, true);
+            clicked.ZIndex = _maxZIndex++;
+            Selection.SetIsSelected(clicked, true);
         }
     }
 
@@ -57,19 +57,19 @@ public class SelectGesture : GestureRecognizer
     protected override void PointerCaptureLost(IPointer pointer)
     {
     }
-
-    private Control? GetSelectedChildAtPointerPress(PointerPressedEventArgs point)
+    
+    private InputElement? GetSelectedChildAtPointerPress(PointerPressedEventArgs point)
     {
-        if (Target is not Panel targetPanel)
+        if (Target is not InputElement target || TopLevel.GetTopLevel(target) is not { } topLevel)
         {
             return null;
         }
-
-        Control? currentControl = null;
-
-        foreach (Control child in targetPanel.Children)
+        
+        InputElement? currentControl = null;
+        
+        foreach (var child in topLevel.GetVisualAt(point.GetPosition(topLevel))?.GetSelfAndVisualAncestors().Cast<InputElement>() ?? [])
         {
-            if (SelectAndMove.GetIsSelectable(child) 
+            if (Selection.GetIsSelectable(child) 
                 && HitTest(point, child) 
                 && (currentControl is null || currentControl.ZIndex <= child.ZIndex))
             {
@@ -80,13 +80,13 @@ public class SelectGesture : GestureRecognizer
         return currentControl;
     }
 
-    private static bool HitTest(PointerPressedEventArgs point, Control child)
+    private static bool HitTest(PointerPressedEventArgs point, InputElement child)
     {
         if (child is ICustomHitResolver customHitResolver)
         {
             return customHitResolver.ContainsPoint(point.GetPosition(child));
         }
-
+        
         return child.InputHitTest(point.GetPosition(child)) is not null;
     }
 }

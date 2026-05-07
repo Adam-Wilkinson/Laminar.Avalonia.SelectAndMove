@@ -1,0 +1,16 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sam="using:Laminar.Avalonia.SelectAndMove">
+    <ControlTheme TargetType="sam:SelectAndMove" x:Key="{x:Type sam:SelectAndMove}">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Name="PART_HitBorder" 
+                        Background="{TemplateBinding Background}">
+                    <ItemsPresenter Name="PART_ItemsPresenter"
+                                    IsHitTestVisible="True"
+                                    ItemsPanel="{TemplateBinding ItemsPanel}"/>
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </ControlTheme>
+</ResourceDictionary>

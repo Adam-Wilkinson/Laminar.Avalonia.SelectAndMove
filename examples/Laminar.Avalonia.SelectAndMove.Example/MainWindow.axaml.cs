@@ -20,7 +20,7 @@ public partial class MainWindow : Window
         DataContext = this;
         InitializeComponent();
 
-        SelectAndMove.IsSelectedProperty.Changed.Subscribe(new AnonymousObserver<AvaloniaPropertyChangedEventArgs<bool>>((obj) =>
+        Selection.IsSelectedProperty.Changed.Subscribe(new AnonymousObserver<AvaloniaPropertyChangedEventArgs<bool>>((obj) =>
         {
             SelectedControls = GetSelectedControls();
         }));
@@ -42,12 +42,13 @@ public partial class MainWindow : Window
 
     private IEnumerable<string> GetSelectedControls()
     {
-        foreach (Control control in ExampleSelectAndMove.Children)
-        {
-            if (SelectAndMove.GetIsSelected(control))
-            {
-                yield return control.Name ?? "Unnamed Control";
-            }
-        }
+        // foreach (Control control in ExampleSelectAndMove.Children)
+        // {
+        //     if (SelectAndMove.GetIsSelected(control))
+        //     {
+        //         yield return control.Name ?? "Unnamed Control";
+        //     }
+        // }
+        return [];
     }
 }

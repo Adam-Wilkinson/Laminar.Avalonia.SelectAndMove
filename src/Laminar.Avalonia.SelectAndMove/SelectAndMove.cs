@@ -1,19 +1,24 @@
-﻿using Avalonia;
+﻿using System.Collections.Specialized;
+using Avalonia;
+using Avalonia.Collections;
 using Avalonia.Controls;
+using Avalonia.Controls.Presenters;
+using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Shapes;
+using Avalonia.Controls.Templates;
 using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Layout;
+using Avalonia.Markup.Xaml.Styling;
+using Avalonia.Markup.Xaml.Templates;
 using Avalonia.Media;
 using Laminar.Avalonia.SelectAndMove.GestureRecognizers;
 
 namespace Laminar.Avalonia.SelectAndMove;
 
-public class SelectAndMove : Canvas
+public class SelectAndMove : ItemsControl
 {
-    public static readonly AttachedProperty<bool> IsSelectedProperty = AvaloniaProperty.RegisterAttached<SelectAndMove, AvaloniaObject, bool>("IsSelected", false);
-
-    public static readonly AttachedProperty<bool> IsSelectableProperty = AvaloniaProperty.RegisterAttached<SelectAndMove, AvaloniaObject, bool>("IsSelectable", true);
+    private const string ItemsPresenterName = "PART_ItemsPresenter";
 
     public static readonly AttachedProperty<bool> IsMovableProperty = AvaloniaProperty.RegisterAttached<SelectAndMove, AvaloniaObject, bool>("IsMovable", true);
 
@@ -33,24 +38,27 @@ public class SelectAndMove : Canvas
 
     public static readonly StyledProperty<SnapMode> SnapModeProperty = MoveSelectionGesture.SnapModeProperty.AddOwner<SelectAndMove>();
 
-    public static bool GetIsSelected(AvaloniaObject element) => element.GetValue(IsSelectedProperty);
-
-    public static void SetIsSelected(AvaloniaObject element, bool value) => element.SetValue(IsSelectedProperty, value);
-
-    public static bool GetIsSelectable(AvaloniaObject element) => element.GetValue(IsSelectableProperty);
-
-    public static void SetIsSelectable(AvaloniaObject element, bool value) => element.SetValue(IsSelectableProperty, value);
+    private static readonly FuncTemplate<Panel?> DefaultPanel = new(() => new Canvas());
 
     public static bool GetIsMovable(AvaloniaObject element) => element.GetValue(IsMovableProperty);
 
     public static void SetIsMovable(AvaloniaObject element, bool value) => element.SetValue(IsMovableProperty, value);
 
+    private ItemsPresenter? _itemsPresenter;
+    
     static SelectAndMove()
     {
+        ItemsPanelProperty.OverrideDefaultValue<SelectAndMove>(DefaultPanel);
         ClipToBoundsProperty.OverrideDefaultValue<SelectAndMove>(true);
         HorizontalAlignmentProperty.OverrideDefaultValue<SelectAndMove>(HorizontalAlignment.Stretch);
         VerticalAlignmentProperty.OverrideDefaultValue<SelectAndMove>(VerticalAlignment.Stretch);
         BackgroundProperty.OverrideDefaultValue<SelectAndMove>(Brush.Parse("#00000000"));
+
+        ResourceInclude samTheme = new((Uri?)null)
+        {
+            Source = new Uri("avares://Laminar.Avalonia.SelectAndMove/SelectAndMoveTheme.axaml")
+        };
+        Application.Current?.Resources.MergedDictionaries.Add(samTheme);
     }
 
     public SelectAndMove()
@@ -58,22 +66,22 @@ public class SelectAndMove : Canvas
         GestureRecognizers.Add(new SelectGesture { 
             [!SelectGesture.SelectManyKeyModifiersProperty] = this[!SelectManyKeyModifiersProperty],
         });
-
+        
         GestureRecognizers.Add(new MoveSelectionGesture { 
             [!MoveSelectionGesture.SnapGridProperty] = this[!SnapGridProperty], 
             [!MoveSelectionGesture.SnapModeProperty] = this[!SnapModeProperty],
         });
-
+        
         GestureRecognizers.Add(new PanGesture { 
             [!PanGesture.PanMouseButtonProperty] = this[!PanMouseButtonProperty],
         });
-
-        GestureRecognizers.Add(new BoxSelectGesture { 
+        
+        GestureRecognizers.Add(new BoxSelectGesture(this) { 
             [!BoxSelectGesture.SelectManyKeyModifiersProperty] = this[!SelectManyKeyModifiersProperty],
             [!BoxSelectGesture.SelectionBoxProperty] = this[!SelectionBoxProperty],
             [!BoxSelectGesture.BoxSelectMouseButtonProperty] = this[!BoxSelectMouseButtonProperty],
         });
-
+        
         GestureRecognizers.Add(new ZoomGesture { 
             [!ZoomGesture.ZoomSpeedProperty] = this[!ZoomSpeedProperty],
             [!ZoomGesture.CurrentZoomProperty] = this[(!CurrentZoomProperty).WithMode(BindingMode.TwoWay)],
@@ -129,25 +137,37 @@ public class SelectAndMove : Canvas
         set => SetValue(CurrentZoomProperty, value);
     }
 
+    protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
+    {
+        base.OnApplyTemplate(e);
+        _itemsPresenter = e.NameScope.Find<ItemsPresenter>(ItemsPresenterName);
+    }
+
+    protected override void PrepareContainerForItemOverride(Control container, object? item, int index)
+    {
+        base.PrepareContainerForItemOverride(container, item, index);
+        Selection.SetIsSelectable(container, true);
+    }
+
     public void ResetView()
     {
-        CurrentZoom = 1.0;
-
-        foreach (Control control in Children)
-        {
-            control.RenderTransform = new MatrixTransform();
-        }
+        // CurrentZoom = 1.0;
+        //
+        // foreach (Control control in Children)
+        // {
+        //     control.RenderTransform = new MatrixTransform();
+        // }
     }
 
     public void FitViewToChildren(double margin)
     {
-        Rect overallBounds = new(0, 0, 0, 0);
-        foreach (Control control in Children)
-        {
-            overallBounds = overallBounds.Union(control.Bounds);
-        }
-
-        FitViewToRect(overallBounds.Inflate(margin));
+        // Rect overallBounds = new(0, 0, 0, 0);
+        // foreach (Control control in Children)
+        // {
+        //     overallBounds = overallBounds.Union(control.Bounds);
+        // }
+        //
+        // FitViewToRect(overallBounds.Inflate(margin));
     }
 
     public void FitViewToRect(Rect newView)
@@ -164,11 +184,11 @@ public class SelectAndMove : Canvas
         Size offsetFromTopLeft = (bounds.Size - newView.Size) / 2;
         Point topLeft = newView.TopLeft - new Point(offsetFromTopLeft.Width, offsetFromTopLeft.Height);
 
-        foreach (Control control in Children)
-        {
-            control.RenderTransform = new MatrixTransform(Matrix.CreateTranslation(-topLeft));
-            Matrix controlTransform = ZoomGesture.GetTransform(control, this, bounds.Center - bounds.TopLeft, zoomAmount) * control.RenderTransform.Value;
-            control.RenderTransform = new MatrixTransform(controlTransform);
-        }
+        // foreach (Control control in Children)
+        // {
+        //     control.RenderTransform = new MatrixTransform(Matrix.CreateTranslation(-topLeft));
+        //     Matrix controlTransform = ZoomGesture.GetTransform(control, this, bounds.Center - bounds.TopLeft, zoomAmount) * control.RenderTransform.Value;
+        //     control.RenderTransform = new MatrixTransform(controlTransform);
+        // }
     }
 }

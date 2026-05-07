@@ -82,12 +82,17 @@ public class MoveSelectionGesture : GestureRecognizer
             return;
         }
 
-        Point delta = e.GetPosition(visualTarget) - _originalClickPoint;
+        Point targetDelta = e.GetPosition(visualTarget) - _originalClickPoint;
 
         foreach ((InputElement control, Point originalControlTopLeft) in _moving)
         {
-            Vector controlScale = (new Point(1, 1) * control.RenderTransform!.Value.Invert()) - (new Point(0, 0) * control.RenderTransform!.Value.Invert());
-            Point localMouseDelta = new(delta.X * controlScale.X, delta.Y * controlScale.Y);
+            Point localMouseDelta = targetDelta;
+            if (control.TransformToVisual(visualTarget) is { } transform)
+            { 
+                Vector controlScale = new Point(1, 1) * transform.Invert() - new Point(0, 0) * transform.Invert();
+                localMouseDelta = new(targetDelta.X * controlScale.X, targetDelta.Y * controlScale.Y);
+            }
+            
             if (_snapPoint is not { } snapPoint)
             {
                 Canvas.SetLeft(control, (originalControlTopLeft + localMouseDelta).X);

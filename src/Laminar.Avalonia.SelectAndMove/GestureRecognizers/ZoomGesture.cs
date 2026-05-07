@@ -19,7 +19,7 @@ public class ZoomGesture : GestureRecognizer
     public static readonly StyledProperty<Control?> ScrollWheelListenerProperty =
         AvaloniaProperty.Register<ZoomGesture, Control?>(nameof(ScrollWheelListener), null);
 
-    private readonly Dictionary<Visual, BoundsChangedObserver> _boundsTrackers = new();
+    // private readonly Dictionary<Visual, BoundsChangedObserver> _boundsTrackers = new();
 
     private Point? _zoomCenter;
 
@@ -40,9 +40,8 @@ public class ZoomGesture : GestureRecognizer
 
         CurrentZoomProperty.Changed.AddClassHandler<ZoomGesture>((o, e) =>
         {
-            if (e.NewValue is not double newZoom 
-            || e.OldValue is not double oldZoom 
-            || o.Target is not Visual targetVisual)
+            var (oldZoom, newZoom) = e.GetOldAndNewValue<double>();
+            if (o.Target is not Visual targetVisual)
             {
                 return;
             }
@@ -105,29 +104,15 @@ public class ZoomGesture : GestureRecognizer
 
     private void ZoomByDelta(double delta, Point positionInParent)
     {
-        if (Target is not Panel targetPanel)
-        {
-            return;
-        }
+        if (Target is not ItemsControl itemsControlTarget)
+            throw new InvalidOperationException("Target must be a ItemsControl");
 
-        foreach (Control control in targetPanel.Children)
-        {
-            control.RenderTransform ??= new MatrixTransform(Matrix.Identity);
-
-            Matrix myScaleMatrix2 = GetTransform(control, targetPanel, positionInParent, delta);
-
-            control.RenderTransform = new MatrixTransform(myScaleMatrix2 * control.RenderTransform.Value);
-
-            // If the control's location changes and it has zoom, it's render transform will need a pan adding to it.
-            if (!_boundsTrackers.ContainsKey(control))
-            {
-                BoundsChangedObserver newObserver = new() { TrackedVisual = control };
-                _boundsTrackers.Add(control, newObserver);
-                control.GetPropertyChangedObservable(Visual.BoundsProperty).Subscribe(newObserver);
-            }
-        }
-
-        targetPanel.InvalidateVisual();
+        if (itemsControlTarget.ItemsPanelRoot is not { } panel || panel.GetVisualParent() is not { } panelParent) return;
+        
+        panel.RenderTransform ??= new MatrixTransform(Matrix.Identity);
+        Matrix scale = GetTransform(panel, panelParent, positionInParent, delta);
+        panel.RenderTransform = new MatrixTransform(scale * panel.RenderTransform.Value);
+        panel.InvalidateVisual();
     }
 
     public static Matrix GetTransform(Control control, Visual parent, Point centerInParent, double scale)
@@ -140,27 +125,27 @@ public class ZoomGesture : GestureRecognizer
     {
         return new Matrix(scale, 0, 0, scale, centerX - scale * centerX, centerY - scale * centerY);
     }
-
-    private class BoundsChangedObserver : IObserver<AvaloniaPropertyChangedEventArgs>
-    {
-        public Visual? TrackedVisual { get; init; }
-
-        public void OnCompleted() { }
-        public void OnError(Exception error) { }
-        public void OnNext(AvaloniaPropertyChangedEventArgs propertyChangedArgs)
-        {
-            ArgumentNullException.ThrowIfNull(TrackedVisual);
-            TrackedVisual.RenderTransform ??= new MatrixTransform();
-
-            if (propertyChangedArgs.NewValue is not Rect newBounds 
-                || propertyChangedArgs.OldValue is not Rect oldBounds)
-            {
-                return;
-            }
-
-            Point locationDelta = newBounds.TopLeft - oldBounds.TopLeft;
-            Matrix transformChange = new(1.0, 0.0, 0.0, 1.0, locationDelta.X * (1 - 1 / TrackedVisual.RenderTransform.Value.M11), locationDelta.Y * (1 - 1 / TrackedVisual.RenderTransform.Value.M22));
-            TrackedVisual.RenderTransform = new MatrixTransform(transformChange * TrackedVisual.RenderTransform.Value);
-        }
-    }
+    //
+    // private class BoundsChangedObserver : IObserver<AvaloniaPropertyChangedEventArgs>
+    // {
+    //     public Visual? TrackedVisual { get; init; }
+    //
+    //     public void OnCompleted() { }
+    //     public void OnError(Exception error) { }
+    //     public void OnNext(AvaloniaPropertyChangedEventArgs propertyChangedArgs)
+    //     {
+    //         ArgumentNullException.ThrowIfNull(TrackedVisual);
+    //         TrackedVisual.RenderTransform ??= new MatrixTransform();
+    //
+    //         if (propertyChangedArgs.NewValue is not Rect newBounds 
+    //             || propertyChangedArgs.OldValue is not Rect oldBounds)
+    //         {
+    //             return;
+    //         }
+    //
+    //         Point locationDelta = newBounds.TopLeft - oldBounds.TopLeft;
+    //         Matrix transformChange = new(1.0, 0.0, 0.0, 1.0, locationDelta.X * (1 - 1 / TrackedVisual.RenderTransform.Value.M11), locationDelta.Y * (1 - 1 / TrackedVisual.RenderTransform.Value.M22));
+    //         TrackedVisual.RenderTransform = new MatrixTransform(transformChange * TrackedVisual.RenderTransform.Value);
+    //     }
+    // }
 }

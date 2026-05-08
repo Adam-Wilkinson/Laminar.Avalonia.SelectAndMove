@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Input.GestureRecognizers;
@@ -36,7 +35,7 @@ public class MoveSelectionGesture : GestureRecognizer
 
     protected override void PointerPressed(PointerPressedEventArgs e)
     {
-        if (e.Pointer is not Pointer pointer || pointer.IsGestureRecognitionSkipped || Target is not InputElement target || !e.GetCurrentPoint(null).Properties.IsLeftButtonPressed)
+        if (e.Pointer is not Pointer pointer || pointer.IsGestureRecognitionSkipped || Target is not InputElement target || !e.Properties.IsLeftButtonPressed)
         {
             return;
         }
@@ -62,7 +61,7 @@ public class MoveSelectionGesture : GestureRecognizer
         _moving.Clear();
 
         var originalBoundsOfSelection = new Rect(0, 0, 0, 0);
-        foreach (var sibling in Selection.GetSelectionSiblings(target).Where(SelectAndMove.GetIsMovable))
+        foreach (var sibling in Selection.GetSelectedSiblings(target).Where(SelectAndMove.GetIsMovable))
         {
             sibling.RenderTransform ??= new MatrixTransform();
 

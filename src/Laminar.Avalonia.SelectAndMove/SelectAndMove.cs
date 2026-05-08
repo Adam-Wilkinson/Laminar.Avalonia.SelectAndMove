@@ -1,12 +1,9 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Presenters;
-using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Shapes;
 using Avalonia.Controls.Templates;
 using Avalonia.Data;
 using Avalonia.Input;
-using Avalonia.Layout;
 using Avalonia.Markup.Xaml.Styling;
 using Avalonia.Media;
 using Laminar.Avalonia.SelectAndMove.GestureRecognizers;
@@ -15,8 +12,6 @@ namespace Laminar.Avalonia.SelectAndMove;
 
 public class SelectAndMove : ItemsControl
 {
-    private const string ItemsPresenterName = "PART_ItemsPresenter";
-
     public static readonly AttachedProperty<bool> IsMovableProperty = AvaloniaProperty.RegisterAttached<SelectAndMove, AvaloniaObject, bool>("IsMovable", true);
 
     public static readonly StyledProperty<KeyModifiers> SelectManyKeyModifiersProperty = SelectGesture.SelectManyKeyModifiersProperty.AddOwner<SelectAndMove>();
@@ -25,63 +20,44 @@ public class SelectAndMove : ItemsControl
 
     public static readonly StyledProperty<MouseButton> BoxSelectMouseButtonProperty = BoxSelectGesture.BoxSelectMouseButtonProperty.AddOwner<SelectAndMove>();
 
-    public static readonly StyledProperty<MouseButton> PanMouseButtonProperty = PanGesture.PanMouseButtonProperty.AddOwner<SelectAndMove>();
+    public static readonly StyledProperty<MouseButton> PanMouseButtonProperty = AvaloniaProperty.Register<SelectAndMove, MouseButton>(nameof(PanMouseButton), MouseButton.Middle);
 
-    public static readonly StyledProperty<double> ZoomSpeedProperty = ZoomGesture.ZoomSpeedProperty.AddOwner<SelectAndMove>();
+    public static readonly StyledProperty<double> ZoomSpeedProperty = AvaloniaProperty.Register<SelectAndMove, double>(nameof(ZoomSpeed), 1.0);
 
-    public static readonly StyledProperty<double> CurrentZoomProperty = ZoomGesture.CurrentZoomProperty.AddOwner<SelectAndMove>();
+    public static readonly StyledProperty<double> ViewZoomProperty = AvaloniaProperty.Register<SelectAndMove, double>(nameof(ViewZoom), 1.0);
 
+    public static readonly StyledProperty<double> ViewTranslateXProperty = AvaloniaProperty.Register<SelectAndMove, double>(nameof(ViewTranslateX));
+    
+    public static readonly StyledProperty<double> ViewTranslateYProperty = AvaloniaProperty.Register<SelectAndMove, double>(nameof(ViewTranslateY));
+        
     public static readonly StyledProperty<Rect> SnapGridProperty = MoveSelectionGesture.SnapGridProperty.AddOwner<SelectAndMove>();
 
     public static readonly StyledProperty<SnapMode> SnapModeProperty = MoveSelectionGesture.SnapModeProperty.AddOwner<SelectAndMove>();
-
+    
     private static readonly FuncTemplate<Panel?> DefaultPanel = new(() => new Canvas());
 
     public static bool GetIsMovable(AvaloniaObject element) => element.GetValue(IsMovableProperty);
 
     public static void SetIsMovable(AvaloniaObject element, bool value) => element.SetValue(IsMovableProperty, value);
+
+    private PointerEventArgs? _previousPanArgs;
+    private bool _blockRenderRecalculation;
     
     static SelectAndMove()
     {
+        ViewZoomProperty.Changed.AddClassHandler<SelectAndMove>((sam, _) => sam.RecalculateRenderTransform());
+        ViewTranslateXProperty.Changed.AddClassHandler<SelectAndMove>((sam, _) => sam.RecalculateRenderTransform());
+        ViewTranslateYProperty.Changed.AddClassHandler<SelectAndMove>((sam, _) => sam.RecalculateRenderTransform());
+        
         ItemsPanelProperty.OverrideDefaultValue<SelectAndMove>(DefaultPanel);
-        ClipToBoundsProperty.OverrideDefaultValue<SelectAndMove>(true);
-        HorizontalAlignmentProperty.OverrideDefaultValue<SelectAndMove>(HorizontalAlignment.Stretch);
-        VerticalAlignmentProperty.OverrideDefaultValue<SelectAndMove>(VerticalAlignment.Stretch);
         BackgroundProperty.OverrideDefaultValue<SelectAndMove>(Brush.Parse("#00000000"));
+        Selection.IsScopeProperty.OverrideDefaultValue<SelectAndMove>(true);
 
-        ResourceInclude samTheme = new((Uri?)null)
+        ResourceInclude selectAndMoveTheme = new((Uri?)null)
         {
             Source = new Uri("avares://Laminar.Avalonia.SelectAndMove/SelectAndMoveTheme.axaml")
         };
-        Application.Current?.Resources.MergedDictionaries.Add(samTheme);
-    }
-
-    public SelectAndMove()
-    {
-        GestureRecognizers.Add(new SelectGesture { 
-            [!SelectGesture.SelectManyKeyModifiersProperty] = this[!SelectManyKeyModifiersProperty],
-        });
-        
-        GestureRecognizers.Add(new MoveSelectionGesture { 
-            [!MoveSelectionGesture.SnapGridProperty] = this[!SnapGridProperty], 
-            [!MoveSelectionGesture.SnapModeProperty] = this[!SnapModeProperty],
-        });
-        
-        GestureRecognizers.Add(new PanGesture { 
-            [!PanGesture.PanMouseButtonProperty] = this[!PanMouseButtonProperty],
-        });
-        
-        GestureRecognizers.Add(new BoxSelectGesture(this) { 
-            [!BoxSelectGesture.SelectManyKeyModifiersProperty] = this[!SelectManyKeyModifiersProperty],
-            [!BoxSelectGesture.SelectionBoxProperty] = this[!SelectionBoxProperty],
-            [!BoxSelectGesture.BoxSelectMouseButtonProperty] = this[!BoxSelectMouseButtonProperty],
-        });
-        
-        GestureRecognizers.Add(new ZoomGesture { 
-            [!ZoomGesture.ZoomSpeedProperty] = this[!ZoomSpeedProperty],
-            [!ZoomGesture.CurrentZoomProperty] = this[(!CurrentZoomProperty).WithMode(BindingMode.TwoWay)],
-            ScrollWheelListener = this,
-        });
+        Application.Current?.Resources.MergedDictionaries.Add(selectAndMoveTheme);
     }
 
     public Rect SnapGrid
@@ -126,22 +102,71 @@ public class SelectAndMove : ItemsControl
         set => SetValue(ZoomSpeedProperty, value);
     }
 
-    public double CurrentZoom
+    public double ViewZoom
     {
-        get => GetValue(CurrentZoomProperty);
-        set => SetValue(CurrentZoomProperty, value);
+        get => GetValue(ViewZoomProperty);
+        set => SetValue(ViewZoomProperty, value);
+    }
+
+    public double ViewTranslateX
+    {
+        get => GetValue(ViewTranslateXProperty);
+        set => SetValue(ViewTranslateXProperty, value);
+    }
+
+    public double ViewTranslateY
+    {
+        get => GetValue(ViewTranslateYProperty);
+        set => SetValue(ViewTranslateYProperty, value);
     }
 
     protected override void PrepareContainerForItemOverride(Control container, object? item, int index)
     {
         base.PrepareContainerForItemOverride(container, item, index);
-        Selection.SetIsSelectable(container, true);
+        container.SetValue(Selection.IsSelectableProperty, true, BindingPriority.Style);
+    }
+
+    protected override void OnPointerWheelChanged(PointerWheelEventArgs e)
+    {
+        _blockRenderRecalculation = true;
+        Point cursorBefore = e.GetPosition(ItemsPanelRoot);
+        ViewZoom *= Math.Exp(ZoomSpeed * e.Delta.Y / 5);
+        Point positionDelta = e.GetPosition(ItemsPanelRoot) - cursorBefore;
+        ViewTranslateX += positionDelta.X;
+        ViewTranslateY +=  positionDelta.Y;
+        _blockRenderRecalculation = false;
+        RecalculateRenderTransform();
+    }
+
+    protected override void OnPointerMoved(PointerEventArgs e)
+    {
+        if (!ButtonIsPressed(e.Properties, PanMouseButton))
+        {
+            _previousPanArgs = null;
+            return;
+        }
+
+        if (_previousPanArgs is not null)
+        {
+            _blockRenderRecalculation = true;
+            Point delta = e.GetPosition(ItemsPanelRoot) - _previousPanArgs.GetPosition(ItemsPanelRoot);
+            ViewTranslateX += delta.X;
+            ViewTranslateY += delta.Y;
+            _blockRenderRecalculation = false;
+            RecalculateRenderTransform();
+        }
+
+        _previousPanArgs = e;
     }
 
     public void ResetView()
     {
-        CurrentZoom = 1.0;
-        ItemsPanelRoot?.RenderTransform = new MatrixTransform();
+        _blockRenderRecalculation = true;
+        ViewZoom = 1.0;
+        ViewTranslateX = 0;
+        ViewTranslateY = 0;
+        _blockRenderRecalculation = false;
+        RecalculateRenderTransform();
     }
 
     public void FitViewToChildren(double margin)
@@ -163,16 +188,32 @@ public class SelectAndMove : ItemsControl
 
     public void FitToViewRectWithManualBounds(Rect newView, Rect bounds)
     {
-        if (ItemsPanelRoot is null) return;
         Vector zoomAmounts = bounds.Size / newView.Size;
         double zoomAmount = Math.Min(zoomAmounts.X, zoomAmounts.Y);
-        CurrentZoom = zoomAmount;
-
         Size offsetFromTopLeft = (bounds.Size - newView.Size) / 2;
         Point topLeft = newView.TopLeft - new Point(offsetFromTopLeft.Width, offsetFromTopLeft.Height);
-
-        ItemsPanelRoot.RenderTransform = new MatrixTransform(Matrix.CreateTranslation(-topLeft));
-        Matrix controlTransform = ZoomGesture.GetTransform(ItemsPanelRoot, this, bounds.Center - bounds.TopLeft, zoomAmount) * ItemsPanelRoot.RenderTransform.Value;
-        ItemsPanelRoot.RenderTransform = new MatrixTransform(controlTransform);
+        _blockRenderRecalculation = true;
+        ViewTranslateX = -topLeft.X;
+        ViewTranslateY = -topLeft.Y;
+        ViewZoom = zoomAmount;
+        _blockRenderRecalculation = false;
+        RecalculateRenderTransform();
     }
+    
+    private void RecalculateRenderTransform()
+    {
+        if (_blockRenderRecalculation) return;
+        ItemsPanelRoot?.RenderTransform =
+            new MatrixTransform(Matrix.CreateTranslation(ViewTranslateX, ViewTranslateY) * Matrix.CreateScale(ViewZoom, ViewZoom));
+    }
+    
+    private static bool ButtonIsPressed(PointerPointProperties pointerProperties, MouseButton button) => button switch
+    {
+        MouseButton.Left => pointerProperties.IsLeftButtonPressed,
+        MouseButton.Right => pointerProperties.IsRightButtonPressed,
+        MouseButton.Middle => pointerProperties.IsMiddleButtonPressed,
+        MouseButton.XButton1 => pointerProperties.IsXButton1Pressed,
+        MouseButton.XButton2 => pointerProperties.IsXButton2Pressed,
+        _ => false,
+    };
 }

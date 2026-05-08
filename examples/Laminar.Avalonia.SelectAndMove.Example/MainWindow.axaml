@@ -6,157 +6,117 @@
 		xmlns:sam = "using:Laminar.Avalonia.SelectAndMove"
         mc:Ignorable="d" d:DesignWidth="1500" d:DesignHeight="1000"
         x:Class="Laminar.Avalonia.SelectAndMove.Example.MainWindow"
-        x:DataType="loc:MainWindow"
         Title="Laminar.Avalonia.SelectAndMove.Example">
 	<DockPanel 
 		VerticalAlignment="Stretch" 
 		HorizontalAlignment="Stretch">
 
-		<Grid
+		<StackPanel
+			Orientation="Vertical"
 			Margin="20"
-			ColumnDefinitions="*,*"
-			RowDefinitions="auto,auto,auto,auto,auto,auto,auto,auto,auto,auto,auto,auto,auto,auto,auto,auto,auto"
 			Width="400">
 
-			<TextBlock
-				Grid.Row="0" Grid.Column="0"
-				VerticalAlignment="Center"
-				Text="Number of Minor Lines: "/>
+			<Grid ColumnDefinitions="*,*" Margin="0,0,0,10">
+				<TextBlock Grid.Column="0"
+					VerticalAlignment="Center"
+					Text="Number of Minor Lines: "/>
 				
-			<NumericUpDown
-				Grid.Row="0" Grid.Column="1"
-				VerticalAlignment="Center"
-				Value="{Binding #BackgroundLines.MinorLineCount, Mode=TwoWay}"
-				Text="Test"/>
-			
-			<TextBlock
-				Grid.Row="1" Grid.Column="0"
-				Margin="0,30,0,0"
-				Text="Major Line Separation:"/>
+				<NumericUpDown Grid.Column="1"
+					VerticalAlignment="Center"
+					Value="{Binding #BackgroundLines.MinorLineCount, Mode=TwoWay}"
+					Text="Test"/>
+			</Grid>
 				
-			<TextBlock
-				Grid.Row="1" Grid.Column="1"
-				VerticalAlignment="Bottom"
-				HorizontalAlignment="Right"
-				Text="{Binding #BackgroundLines.MajorLineSeparation}"/>
-			
-			<Slider 
-				Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
-				Value="{Binding #BackgroundLines.MajorLineSeparation, Mode=TwoWay}" 
-				Minimum="10" Maximum="500"/>
-			
-			<TextBlock
-				Grid.Row="3" Grid.Column="0"
-				Margin="0,20,0,0"
-				Text="Major Line Thickness: "/>
+			<TextBlock Text="{Binding #BackgroundLines.MajorLineSeparation, StringFormat='Major Line Separation: {0:0.0}'}"/>
+			<Slider Value="{Binding #BackgroundLines.MajorLineSeparation, Mode=TwoWay}" 
+			        Minimum="10" Maximum="500"/>
 				
-			<TextBlock
-				Grid.Row="3" Grid.Column="1"
-				VerticalAlignment="Bottom"
-				HorizontalAlignment="Right"
-				Text="{Binding #BackgroundLines.MajorLineThickness}"/>
+			<TextBlock Text="{Binding #BackgroundLines.MajorLineThickness, StringFormat='Major Line Thickness: {0:0.0}'}"/>
+			<Slider Value="{Binding #BackgroundLines.MajorLineThickness, Mode=TwoWay}" 
+			        Minimum="0.1" Maximum="10"/>
 			
-			<Slider
-				Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2"
-				Value="{Binding #BackgroundLines.MajorLineThickness, Mode=TwoWay}" 
-				Minimum="0.1" Maximum="10"/>
+			<Separator/>
 			
-			<Separator  
-				Grid.ColumnSpan="2" Grid.Column="0" Grid.Row="5"/>
+			<TextBlock Text="{Binding #ExampleSelectAndMove.ZoomSpeed, StringFormat='Zoom Speed: {0:0.0}'}"/>
 			
-			<TextBlock
-				Grid.Row="6" Grid.Column="0"
-				Margin="0,5,0,0"
-				Text="Zoom Speed: "/>
+			<Slider Value="{Binding #ExampleSelectAndMove.ZoomSpeed, Mode=TwoWay}" 
+			        Minimum="0.1" Maximum="5"/>
+
+			<TextBlock Text="{Binding #ExampleSelectAndMove.ViewZoom, StringFormat='Current Zoom: {0:0.0}'}"/>
+			<Slider Value="{Binding #ExampleSelectAndMove.ViewZoom, Mode=TwoWay}"
+			        Minimum="0.2" Maximum="5"/>
+			
+			<Grid ColumnDefinitions="*,*">
+				<NumericUpDown Grid.Column="0"
+				               Value="{Binding #ExampleSelectAndMove.ViewTranslateX}"
+				               FormatString="X: {0:0.0}"/>
+				<NumericUpDown Grid.Column="1"
+				               Value="{Binding #ExampleSelectAndMove.ViewTranslateY}"
+				               FormatString="Y: {0:0.0}"/>
+			</Grid>
+			
+			<Separator/>
+
+			<Grid ColumnDefinitions="*,*" RowDefinitions="*,*,*">
 				
-			<TextBlock
-				Grid.Row="6" Grid.Column="1"
-				VerticalAlignment="Bottom"
-				HorizontalAlignment="Right"
-				Text="{Binding #ExampleSelectAndMove.ZoomSpeed}"/>
+				<TextBlock
+					Grid.Row="0" Grid.Column="0"
+					Text="Snap Mode: "/>	
 			
-			<Slider
-				Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="2"
-				Value="{Binding #ExampleSelectAndMove.ZoomSpeed, Mode=TwoWay}" 
-				Minimum="0.1" Maximum="5"/>
+				<ComboBox Name="SnapModeSelector"
+				          Grid.Row="0" Grid.Column="1"
+				          HorizontalAlignment="Stretch"
+				          ItemsSource="{x:Static loc:MainWindow.AllSnapModes}"
+				          SelectedItem="{Binding #ExampleSelectAndMove.SnapMode, Mode=TwoWay}"/>
 
-			<TextBlock
-				Grid.Row="8" Grid.Column="0"
-				Margin="0,20,0,0"
-				Text="Current Zoom: "/>
+				<TextBlock
+					Grid.Row="1" Grid.Column="0"
+					Text="Pan Mouse Button: "/>
 
-			<TextBlock
-				Grid.Row="8" Grid.Column="1"
-				VerticalAlignment="Bottom"
-				HorizontalAlignment="Right"
-				Text="{Binding #ExampleSelectAndMove.CurrentZoom}"/>
+				<ComboBox Name="PanButtonSelector"
+				          HorizontalAlignment="Stretch"
+				          Grid.Row="1" Grid.Column="1"
+				          ItemsSource="{x:Static loc:MainWindow.AllMouseButtons}"
+				          SelectedItem="{Binding #ExampleSelectAndMove.PanMouseButton, Mode=TwoWay}"/>
 
-			<Slider
-				Grid.Row="9" Grid.Column="0" Grid.ColumnSpan="2"
-				Value="{Binding #ExampleSelectAndMove.CurrentZoom, Mode=TwoWay}"
-				Minimum="0.2" Maximum="5"/>
-			
-			<Separator
-				Grid.Row="10" Grid.Column="0" Grid.ColumnSpan="2"/>
-				
-			<TextBlock
-				Grid.Row="11" Grid.Column="0"
-				Text="Snap Mode: "/>	
-			
-			<ComboBox Name="SnapModeSelector"
-				Grid.Row="11" Grid.Column="1"
-				HorizontalAlignment="Stretch"
-				ItemsSource="{x:Static loc:MainWindow.AllSnapModes}"
-				SelectedItem="{Binding #ExampleSelectAndMove.SnapMode, Mode=TwoWay}"/>
+				<TextBlock
+					Grid.Row="2" Grid.Column="0"
+					Text="Box Select Button: "/>
 
-			<TextBlock
-				Grid.Row="12" Grid.Column="0"
-				Text="Pan Mouse Button: "/>
-
-			<ComboBox Name="PanButtonSelector"
-				HorizontalAlignment="Stretch"
-				Grid.Row="12" Grid.Column="1"
-				ItemsSource="{x:Static loc:MainWindow.AllMouseButtons}"
-				SelectedItem="{Binding #ExampleSelectAndMove.PanMouseButton, Mode=TwoWay}"/>
-
-			<TextBlock
-				Grid.Row="13" Grid.Column="0"
-				Text="Box Select Button: "/>
-
-			<ComboBox Name="BoxSelectButtonSelector"
-				HorizontalAlignment="Stretch"
-				Grid.Row="13" Grid.Column="1"
-				ItemsSource="{x:Static loc:MainWindow.AllMouseButtons}"
-				SelectedItem="{Binding #ExampleSelectAndMove.BoxSelectMouseButton, Mode=TwoWay}"/>
+				<ComboBox Name="BoxSelectButtonSelector"
+				          HorizontalAlignment="Stretch"
+				          Grid.Row="2" Grid.Column="1"
+				          ItemsSource="{x:Static loc:MainWindow.AllMouseButtons}"
+				          SelectedItem="{Binding #ExampleSelectAndMove.BoxSelectMouseButton, Mode=TwoWay}"/>
+			</Grid>
 			
 			<Button
-				Grid.Row="14" Grid.Column="0" Grid.ColumnSpan="2"
 				HorizontalAlignment="Stretch"
 				Margin="0,20,0,0"
 				Command="{Binding #ExampleSelectAndMove.ResetView}"
 				Content="Reset View"/>
 
 			<Button
-				Grid.Row="15" Grid.Column="0" Grid.ColumnSpan="2"
 				HorizontalAlignment="Stretch"
 				Margin="0,0,0,20"
-				Command="{Binding FitToControlsCommand}"
+				Command="{Binding #ExampleSelectAndMove.FitViewToChildren}"
 				Content="Fit view to controls">
 				<Button.CommandParameter>
 					<x:Double>10</x:Double>
 				</Button.CommandParameter>
 			</Button>
 			
-			<StackPanel
-				Grid.Row="16" Grid.Column="0" Grid.ColumnSpan="2"
-				Orientation="Vertical">
-				
-				<TextBlock	
-					Padding="5"
-					Text="Selected Controls:"/>
-				<ListBox ItemsSource="{Binding SelectedControls}"/>
-			</StackPanel>
-		</Grid>
+			<TextBlock	
+				Padding="5"
+				Text="Selected Controls:"/>
+			<ListBox ItemsSource="{Binding #ExampleSelectAndMove.(sam:Selection.SelectedElements)}">
+				<ListBox.ItemTemplate>
+					<DataTemplate DataType="Control">
+						<TextBlock Text="{Binding Name}"/>
+					</DataTemplate>
+				</ListBox.ItemTemplate>
+			</ListBox>
+		</StackPanel>
 		
 		<sam:SelectAndMove 
 			Name="ExampleSelectAndMove" 

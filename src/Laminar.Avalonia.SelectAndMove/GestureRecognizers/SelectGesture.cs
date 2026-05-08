@@ -36,7 +36,7 @@ public class SelectGesture : GestureRecognizer
 
         if (e.KeyModifiers != SelectManyKeyModifiers)
         {
-            Selection.ClearSiblings(target);
+            Selection.ClearSiblingSelection(target);
         }
 
         if (clicked is not null)

@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using Avalonia;
 using Avalonia.Collections;
 using Avalonia.Controls;
+using Avalonia.Controls.Templates;
 using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.LogicalTree;
@@ -64,17 +65,17 @@ public class Selection
 
     private static void SelectableElementAttachedToVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
     {
-        if (e.AttachmentPoint is InputElement parent)
+        if (e.AttachmentPoint is InputElement parent && sender is InputElement selectable)
         {
-            FindScope(parent)?.RegisterSelectable(parent);
+            FindScope(parent)?.RegisterSelectable(selectable);
         }
     }
 
     private static void SelectableElementDetachedToVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
     {
-        if (e.AttachmentPoint is InputElement parent)
+        if (e.AttachmentPoint is InputElement parent && sender is InputElement selectable)
         {
-            FindScope(parent)?.UnregisterSelectable(parent);
+            FindScope(parent)?.UnregisterSelectable(selectable);
         }
     }
 

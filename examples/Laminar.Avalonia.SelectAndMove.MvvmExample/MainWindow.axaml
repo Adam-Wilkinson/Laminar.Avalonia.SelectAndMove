@@ -1,0 +1,52 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:Laminar.Avalonia.SelectAndMove.MvvmExample"
+        xmlns:sam="using:Laminar.Avalonia.SelectAndMove"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="Laminar.Avalonia.SelectAndMove.MvvmExample.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        AddElementCommand="{Binding AddElementCommand}"
+        Title="Laminar.Avalonia.SelectAndMove.MvvmExample">
+    <DockPanel>
+        <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" HorizontalAlignment="Center">
+            <TextBlock VerticalAlignment="Center">New Element Text: </TextBlock>
+            <TextBox VerticalAlignment="Center" Text="{Binding NewElementName}"/>
+        </StackPanel>
+        
+        <sam:SelectAndMove Name="SelectAndMove" 
+                           CornerRadius="10"
+                           Margin="4"
+                           Background="#222"
+                           DoubleTapped="SelectAndMove_DoubleTapped"    
+                           ItemsSource="{Binding Items}">
+            <sam:SelectAndMove.ItemTemplate>
+                <DataTemplate DataType="vm:SelectAndMoveItem">
+                    <TextBlock Text="{Binding Text}"
+                               Canvas.Left="{Binding Position.X}"
+                               Canvas.Top="{Binding Position.Y}"
+                               Padding="10">
+                        
+                        <TextBlock.Styles>
+                            <Style Selector="TextBlock[(sam|Selection.IsSelected)=False]">
+                                <Setter Property="Background" Value="#444"/>
+                            </Style>
+                            
+                            <Style Selector="TextBlock[(sam|Selection.IsSelected)=True]">
+                                <Setter Property="Background" Value="#666"/>
+                            </Style>
+                        </TextBlock.Styles>
+                    </TextBlock>
+                </DataTemplate>
+            </sam:SelectAndMove.ItemTemplate>
+            
+            <sam:SelectAndMove.Styles>
+                <Style Selector="sam|SelectAndMove > ContentPresenter" x:DataType="vm:SelectAndMoveItem">
+                    <Setter Property="Canvas.Left" Value="{Binding Position.X}"/>
+                    <Setter Property="Canvas.Top" Value="{Binding Position.Y}"/>
+                </Style>
+            </sam:SelectAndMove.Styles>
+        </sam:SelectAndMove>
+    </DockPanel>
+</Window>

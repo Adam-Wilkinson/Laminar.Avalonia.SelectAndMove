@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <OutputType>WinExe</OutputType>
+        <TargetFramework>net10.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+        <ApplicationManifest>app.manifest</ApplicationManifest>
+        <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+        <LangVersion>default</LangVersion>
+        <RootNamespace>Laminar.Avalonia.SelectAndMove.MvvmExample</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Avalonia" Version="12.0.2" />
+        <PackageReference Include="Avalonia.Desktop" Version="12.0.2" />
+        <PackageReference Include="Avalonia.Themes.Fluent" Version="12.0.2" />
+        <PackageReference Include="Avalonia.Fonts.Inter" Version="12.0.2" />
+        <PackageReference Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.1" />
+        <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+        <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\src\Laminar.Avalonia.SelectAndMove\Laminar.Avalonia.SelectAndMove.csproj" />
+    </ItemGroup>
+</Project>

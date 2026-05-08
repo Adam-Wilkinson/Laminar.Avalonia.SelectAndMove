@@ -19,7 +19,8 @@
                            CornerRadius="10"
                            Margin="4"
                            Background="#222"
-                           DoubleTapped="SelectAndMove_DoubleTapped"    
+                           DoubleTapped="SelectAndMove_DoubleTapped"
+                           LineBrush="#111"
                            ItemsSource="{Binding Items}">
             <sam:SelectAndMove.ItemTemplate>
                 <DataTemplate DataType="vm:SelectAndMoveItem">

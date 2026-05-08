@@ -15,14 +15,22 @@ public class BackgroundGridLines : Control
 
     public static readonly AttachedProperty<double> MajorLineThicknessProperty = AvaloniaProperty.RegisterAttached<BackgroundGridLines, double>(nameof(MajorLineThickness), typeof(BackgroundGridLines), 5);
 
-    public static readonly AttachedProperty<IBrush> LineBrushProperty = AvaloniaProperty.RegisterAttached<BackgroundGridLines, IBrush>(nameof(LineBrush), typeof(BackgroundGridLines), Brushes.Gray);
+    public static readonly AttachedProperty<IBrush> LineBrushProperty = AvaloniaProperty.RegisterAttached<BackgroundGridLines, IBrush>(nameof(LineBrush), typeof(BackgroundGridLines), new SolidColorBrush(new Color(255, 5, 5, 5)));
 
     public static readonly DirectProperty<BackgroundGridLines, Rect> SnapGridProperty = AvaloniaProperty.RegisterDirect<BackgroundGridLines, Rect>(nameof(SnapGrid), o => o.SnapGrid);
 
+    public static readonly StyledProperty<Visual?> DrawWithinAncestorProperty = AvaloniaProperty.Register<BackgroundGridLines, Visual?>(nameof(DrawWithinAncestor));
+    
     public Rect SnapGrid
     {
         get;
         private set => SetAndRaise(SnapGridProperty, ref field, value);
+    }
+
+    public Visual? DrawWithinAncestor
+    {
+        get => GetValue(DrawWithinAncestorProperty);
+        set => SetValue(DrawWithinAncestorProperty, value);
     }
 
     private readonly Pen _majorLinePen = new();
@@ -79,8 +87,8 @@ public class BackgroundGridLines : Control
             _minorLinePen.Brush = LineBrush;
         }
 
-        Rect drawingBounds = GetRectInLocal((this.GetLogicalParent() as Visual)!.Bounds);
-        Vector renderScale = drawingBounds.Size / (this.GetLogicalParent() as Visual)!.Bounds.Size;
+        Rect drawingBounds = GetRectInLocal(FindRenderTransformAncestor().Bounds);
+        Vector renderScale = drawingBounds.Size / FindRenderTransformAncestor().Bounds.Size;
 
         // Multiplying by xRenderScale ensures the line thickness remains constant from the perspective of the parent
         _majorLinePen.Thickness = MajorLineThickness * renderScale.X;
@@ -114,7 +122,7 @@ public class BackgroundGridLines : Control
     // We need to keep track of the render transform to our logical parent
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
     {
-        foreach (var  transformListener in _renderTransformListeners)
+        foreach (var transformListener in _renderTransformListeners)
         {
             transformListener.Dispose();
         }
@@ -130,7 +138,7 @@ public class BackgroundGridLines : Control
                 InvalidateVisual();
             })));
 
-            if (Equals(this.GetLogicalParent(), visualParent)) break;
+            if (Equals(FindRenderTransformAncestor(), visualParent)) break;
         }
         
         InvalidateVisual();
@@ -140,9 +148,7 @@ public class BackgroundGridLines : Control
     
     private Rect GetRectInLocal(Rect rect)
     {
-        if (this.GetLogicalParent() is not Visual logicalVisualParent) throw new InvalidOperationException();
-        
-        Matrix transformToParent = this.TransformToVisual(logicalVisualParent)?.Invert() ?? throw new InvalidOperationException();
+        Matrix transformToParent = this.TransformToVisual(FindRenderTransformAncestor())?.Invert() ?? throw new InvalidOperationException();
         Point topLeftInParent = new Point(-Bounds.Left, -Bounds.Top) * transformToParent;
         Point bottomRightInParent = new Point(rect.Width - Bounds.Left, rect.Height - Bounds.Top) * transformToParent;
         return new Rect(topLeftInParent, bottomRightInParent);
@@ -160,4 +166,12 @@ public class BackgroundGridLines : Control
     }
     
     private static double TrueModulus(double x, double y) => (x % y + y) % y;
+
+    private Visual FindRenderTransformAncestor()
+    {
+        if (DrawWithinAncestor is not null) return DrawWithinAncestor;
+        if (TemplatedParent is Visual templatedVisual) return templatedVisual;
+        if (this.GetLogicalParent() is Visual logicalParentVisual) return logicalParentVisual;
+        throw new InvalidOperationException("Could not find render transform ancestor");
+    }
 }

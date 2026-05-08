@@ -3,6 +3,8 @@
                     xmlns:sam="using:Laminar.Avalonia.SelectAndMove"
                     xmlns:g="using:Laminar.Avalonia.SelectAndMove.GestureRecognizers">
     <ControlTheme TargetType="sam:SelectAndMove" x:Key="{x:Type sam:SelectAndMove}">
+        <Setter Property="LineBrush" Value="{DynamicResource SystemBaseLowColor}"/>
+        
         <Setter Property="Template">
             <ControlTemplate>
                 <Border Name="PART_HitBorder" 
@@ -24,6 +26,13 @@
                         
                     </Border.GestureRecognizers>
                     <Panel Name="PART_TransformRoot">
+                        <sam:BackgroundGridLines SnapGrid="{Binding SnapGrid,
+                                                        RelativeSource={RelativeSource TemplatedParent}, 
+                                                        Mode=OneWayToSource}"
+                                                 MajorLineSeparation="{TemplateBinding MajorLineSeparation}"
+                                                 MajorLineThickness="{TemplateBinding MajorLineThickness}"
+                                                 MinorLineCount="{TemplateBinding MinorLineCount}"
+                                                 LineBrush="{TemplateBinding LineBrush}"/>
                         <ItemsPresenter Name="PART_ItemsPresenter"
                                         IsHitTestVisible="True"
                                         ItemsPanel="{TemplateBinding ItemsPanel}"/>

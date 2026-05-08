@@ -4,7 +4,6 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 		xmlns:loc="using:Laminar.Avalonia.SelectAndMove.Example"
 		xmlns:sam = "using:Laminar.Avalonia.SelectAndMove"
-		xmlns:generic="clr-namespace:System.Collections.Generic;assembly=System.Collections"
 		mc:Ignorable="d" d:DesignWidth="1500" d:DesignHeight="1000"
         x:Class="Laminar.Avalonia.SelectAndMove.Example.MainWindow"
         Title="Laminar.Avalonia.SelectAndMove.Example">
@@ -17,24 +16,24 @@
 			Margin="20"
 			Width="400">
 
-			<!-- <Grid ColumnDefinitions="*,*" Margin="0,0,0,10"> -->
-			<!-- 	<TextBlock Grid.Column="0" -->
-			<!-- 		VerticalAlignment="Center" -->
-			<!-- 		Text="Number of Minor Lines: "/> -->
-			<!-- 	 -->
-			<!-- 	<NumericUpDown Grid.Column="1" -->
-			<!-- 		VerticalAlignment="Center" -->
-			<!-- 		Value="{Binding #BackgroundLines.MinorLineCount, Mode=TwoWay}" -->
-			<!-- 		Text="Test"/> -->
-			<!-- </Grid> -->
-			<!-- 	 -->
-			<!-- <TextBlock Text="{Binding #BackgroundLines.MajorLineSeparation, StringFormat='Major Line Separation: {0:0.0}'}"/> -->
-			<!-- <Slider Value="{Binding #BackgroundLines.MajorLineSeparation, Mode=TwoWay}"  -->
-			<!--         Minimum="10" Maximum="500"/> -->
-			<!-- 	 -->
-			<!-- <TextBlock Text="{Binding #BackgroundLines.MajorLineThickness, StringFormat='Major Line Thickness: {0:0.0}'}"/> -->
-			<!-- <Slider Value="{Binding #BackgroundLines.MajorLineThickness, Mode=TwoWay}"  -->
-			<!--         Minimum="0.1" Maximum="10"/> -->
+			<Grid ColumnDefinitions="*,*" Margin="0,0,0,10">
+				<TextBlock Grid.Column="0"
+					VerticalAlignment="Center"
+					Text="Number of Minor Lines: "/>
+				
+				<NumericUpDown Grid.Column="1"
+					VerticalAlignment="Center"
+					Value="{Binding #ExampleSelectAndMove.MinorLineCount, Mode=TwoWay}"
+					Text="Test"/>
+			</Grid>
+				
+			<TextBlock Text="{Binding #ExampleSelectAndMove.MajorLineSeparation, StringFormat='Major Line Separation: {0:0.0}'}"/>
+			<Slider Value="{Binding #ExampleSelectAndMove.MajorLineSeparation, Mode=TwoWay}"
+			        Minimum="10" Maximum="500"/>
+				
+			<TextBlock Text="{Binding #ExampleSelectAndMove.MajorLineThickness, StringFormat='Major Line Thickness: {0:0.0}'}"/>
+			<Slider Value="{Binding #ExampleSelectAndMove.MajorLineThickness, Mode=TwoWay}"
+			        Minimum="0.1" Maximum="10"/>
 			
 			<Separator/>
 			
@@ -127,11 +126,6 @@
 					Stroke="DarkGray"
 					StrokeThickness="3"/>
 			</sam:SelectAndMove.SelectionBox>
-			
-			<sam:BackgroundGridLines
-				Name="BackgroundLines"
-				Opacity="0.3"
-				LineBrush="Gray"/>
 			
 			<TextBlock
 				Name="Unselectable"

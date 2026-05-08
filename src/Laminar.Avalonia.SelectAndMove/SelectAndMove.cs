@@ -23,6 +23,7 @@ public class SelectAndMove : ItemsControl
 
     public static readonly StyledProperty<MouseButton> PanMouseButtonProperty = AvaloniaProperty.Register<SelectAndMove, MouseButton>(nameof(PanMouseButton), MouseButton.Middle);
 
+    
     public static readonly StyledProperty<double> ZoomSpeedProperty = AvaloniaProperty.Register<SelectAndMove, double>(nameof(ZoomSpeed), 1.0);
 
     public static readonly StyledProperty<double> ViewZoomProperty = AvaloniaProperty.Register<SelectAndMove, double>(nameof(ViewZoom), 1.0);
@@ -30,10 +31,19 @@ public class SelectAndMove : ItemsControl
     public static readonly StyledProperty<double> ViewTranslateXProperty = AvaloniaProperty.Register<SelectAndMove, double>(nameof(ViewTranslateX));
     
     public static readonly StyledProperty<double> ViewTranslateYProperty = AvaloniaProperty.Register<SelectAndMove, double>(nameof(ViewTranslateY));
-        
+    
+    
     public static readonly StyledProperty<Rect> SnapGridProperty = MoveSelectionGesture.SnapGridProperty.AddOwner<SelectAndMove>();
 
     public static readonly StyledProperty<SnapMode> SnapModeProperty = MoveSelectionGesture.SnapModeProperty.AddOwner<SelectAndMove>();
+    
+    public static readonly StyledProperty<double> MajorLineSeparationProperty = BackgroundGridLines.MajorLineSeparationProperty.AddOwner<SelectAndMove>();
+
+    public static readonly StyledProperty<double> MajorLineThicknessProperty = BackgroundGridLines.MajorLineThicknessProperty.AddOwner<SelectAndMove>();
+        
+    public static readonly StyledProperty<int> MinorLineCountProperty = BackgroundGridLines.MinorLineCountProperty.AddOwner<SelectAndMove>();
+    
+    public static readonly StyledProperty<IBrush> LineBrushProperty = BackgroundGridLines.LineBrushProperty.AddOwner<SelectAndMove>();
     
     private static readonly FuncTemplate<Panel?> DefaultPanel = new(() => new Canvas());
 
@@ -120,6 +130,30 @@ public class SelectAndMove : ItemsControl
     {
         get => GetValue(ViewTranslateYProperty);
         set => SetValue(ViewTranslateYProperty, value);
+    }
+    
+    public double MajorLineSeparation
+    {
+        get => GetValue(MajorLineSeparationProperty);
+        set => SetValue(MajorLineSeparationProperty, value);
+    }
+
+    public int MinorLineCount
+    {
+        get => GetValue(MinorLineCountProperty);
+        set => SetValue(MinorLineCountProperty, value);
+    }
+
+    public double MajorLineThickness
+    {
+        get => GetValue(MajorLineThicknessProperty);
+        set => SetValue(MajorLineThicknessProperty, value);
+    }
+
+    public IBrush LineBrush
+    {
+        get => GetValue(LineBrushProperty);
+        set => SetValue(LineBrushProperty, value);
     }
 
     protected override void OnApplyTemplate(TemplateAppliedEventArgs e)

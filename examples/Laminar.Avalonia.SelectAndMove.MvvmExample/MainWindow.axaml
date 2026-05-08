@@ -10,7 +10,7 @@
         AddElementCommand="{Binding AddElementCommand}"
         Title="Laminar.Avalonia.SelectAndMove.MvvmExample">
     <DockPanel>
-        <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" HorizontalAlignment="Center">
+        <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" HorizontalAlignment="Center" Margin="0,4,0,0">
             <TextBlock VerticalAlignment="Center">New Element Text: </TextBlock>
             <TextBox VerticalAlignment="Center" Text="{Binding NewElementName}"/>
         </StackPanel>
@@ -24,10 +24,7 @@
             <sam:SelectAndMove.ItemTemplate>
                 <DataTemplate DataType="vm:SelectAndMoveItem">
                     <TextBlock Text="{Binding Text}"
-                               Canvas.Left="{Binding Position.X}"
-                               Canvas.Top="{Binding Position.Y}"
                                Padding="10">
-                        
                         <TextBlock.Styles>
                             <Style Selector="TextBlock[(sam|Selection.IsSelected)=False]">
                                 <Setter Property="Background" Value="#444"/>

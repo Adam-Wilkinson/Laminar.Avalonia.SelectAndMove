@@ -1,5 +1,6 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Shapes;
 using Avalonia.Controls.Templates;
 using Avalonia.Data;
@@ -42,6 +43,7 @@ public class SelectAndMove : ItemsControl
 
     private PointerEventArgs? _previousPanArgs;
     private bool _blockRenderRecalculation;
+    private Visual? _transformRoot;
     
     static SelectAndMove()
     {
@@ -120,6 +122,12 @@ public class SelectAndMove : ItemsControl
         set => SetValue(ViewTranslateYProperty, value);
     }
 
+    protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
+    {
+        base.OnApplyTemplate(e);
+        _transformRoot = e.NameScope.Find<Visual>("PART_TransformRoot");
+    }
+
     protected override void PrepareContainerForItemOverride(Control container, object? item, int index)
     {
         base.PrepareContainerForItemOverride(container, item, index);
@@ -128,10 +136,10 @@ public class SelectAndMove : ItemsControl
 
     protected override void OnPointerWheelChanged(PointerWheelEventArgs e)
     {
-        _blockRenderRecalculation = true;
-        Point cursorBefore = e.GetPosition(ItemsPanelRoot);
+        Point cursorBefore = e.GetPosition(_transformRoot);
         ViewZoom *= Math.Exp(ZoomSpeed * e.Delta.Y / 5);
-        Point positionDelta = e.GetPosition(ItemsPanelRoot) - cursorBefore;
+        Point positionDelta = e.GetPosition(_transformRoot) - cursorBefore;
+        _blockRenderRecalculation = true;
         ViewTranslateX += positionDelta.X;
         ViewTranslateY +=  positionDelta.Y;
         _blockRenderRecalculation = false;
@@ -149,7 +157,7 @@ public class SelectAndMove : ItemsControl
         if (_previousPanArgs is not null)
         {
             _blockRenderRecalculation = true;
-            Point delta = e.GetPosition(ItemsPanelRoot) - _previousPanArgs.GetPosition(ItemsPanelRoot);
+            Point delta = e.GetPosition(_transformRoot) - _previousPanArgs.GetPosition(_transformRoot);
             ViewTranslateX += delta.X;
             ViewTranslateY += delta.Y;
             _blockRenderRecalculation = false;
@@ -203,7 +211,7 @@ public class SelectAndMove : ItemsControl
     private void RecalculateRenderTransform()
     {
         if (_blockRenderRecalculation) return;
-        ItemsPanelRoot?.RenderTransform =
+        _transformRoot?.RenderTransform =
             new MatrixTransform(Matrix.CreateTranslation(ViewTranslateX, ViewTranslateY) * Matrix.CreateScale(ViewZoom, ViewZoom));
     }
     

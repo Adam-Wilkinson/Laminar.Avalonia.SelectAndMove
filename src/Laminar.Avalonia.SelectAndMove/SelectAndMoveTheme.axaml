@@ -23,9 +23,11 @@
                                             BoxSelectMouseButton="{TemplateBinding BoxSelectMouseButton}"/>
                         
                     </Border.GestureRecognizers>
-                    <ItemsPresenter Name="PART_ItemsPresenter"
-                                    IsHitTestVisible="True"
-                                    ItemsPanel="{TemplateBinding ItemsPanel}"/>
+                    <Panel Name="PART_TransformRoot">
+                        <ItemsPresenter Name="PART_ItemsPresenter"
+                                        IsHitTestVisible="True"
+                                        ItemsPanel="{TemplateBinding ItemsPanel}"/>
+                    </Panel>
                 </Border>
             </ControlTemplate>
         </Setter>

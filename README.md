@@ -2,7 +2,7 @@
 
 SelectAndMove is a lightweight, modular Avalonia control for selecting and moving controls. 
 
-![Example Screenshot](./Images/Example_Screenshot_Darkmode.png "An example of some controls in the SelectAndMove environment")
+![Example Screenshot](./Images/Example_Screenshot.png "An example of some controls in the SelectAndMove environment")
 [See source code for this example](examples/Laminar.Avalonia.SelectAndMove.Example/MainWindow.axaml)
 
 ## Implementation Details

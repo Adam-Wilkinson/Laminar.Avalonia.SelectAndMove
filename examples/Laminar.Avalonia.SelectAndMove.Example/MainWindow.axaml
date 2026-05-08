@@ -4,7 +4,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 		xmlns:loc="using:Laminar.Avalonia.SelectAndMove.Example"
 		xmlns:sam = "using:Laminar.Avalonia.SelectAndMove"
-        mc:Ignorable="d" d:DesignWidth="1500" d:DesignHeight="1000"
+		xmlns:generic="clr-namespace:System.Collections.Generic;assembly=System.Collections"
+		mc:Ignorable="d" d:DesignWidth="1500" d:DesignHeight="1000"
         x:Class="Laminar.Avalonia.SelectAndMove.Example.MainWindow"
         Title="Laminar.Avalonia.SelectAndMove.Example">
 	<DockPanel 
@@ -16,24 +17,24 @@
 			Margin="20"
 			Width="400">
 
-			<Grid ColumnDefinitions="*,*" Margin="0,0,0,10">
-				<TextBlock Grid.Column="0"
-					VerticalAlignment="Center"
-					Text="Number of Minor Lines: "/>
-				
-				<NumericUpDown Grid.Column="1"
-					VerticalAlignment="Center"
-					Value="{Binding #BackgroundLines.MinorLineCount, Mode=TwoWay}"
-					Text="Test"/>
-			</Grid>
-				
-			<TextBlock Text="{Binding #BackgroundLines.MajorLineSeparation, StringFormat='Major Line Separation: {0:0.0}'}"/>
-			<Slider Value="{Binding #BackgroundLines.MajorLineSeparation, Mode=TwoWay}" 
-			        Minimum="10" Maximum="500"/>
-				
-			<TextBlock Text="{Binding #BackgroundLines.MajorLineThickness, StringFormat='Major Line Thickness: {0:0.0}'}"/>
-			<Slider Value="{Binding #BackgroundLines.MajorLineThickness, Mode=TwoWay}" 
-			        Minimum="0.1" Maximum="10"/>
+			<!-- <Grid ColumnDefinitions="*,*" Margin="0,0,0,10"> -->
+			<!-- 	<TextBlock Grid.Column="0" -->
+			<!-- 		VerticalAlignment="Center" -->
+			<!-- 		Text="Number of Minor Lines: "/> -->
+			<!-- 	 -->
+			<!-- 	<NumericUpDown Grid.Column="1" -->
+			<!-- 		VerticalAlignment="Center" -->
+			<!-- 		Value="{Binding #BackgroundLines.MinorLineCount, Mode=TwoWay}" -->
+			<!-- 		Text="Test"/> -->
+			<!-- </Grid> -->
+			<!-- 	 -->
+			<!-- <TextBlock Text="{Binding #BackgroundLines.MajorLineSeparation, StringFormat='Major Line Separation: {0:0.0}'}"/> -->
+			<!-- <Slider Value="{Binding #BackgroundLines.MajorLineSeparation, Mode=TwoWay}"  -->
+			<!--         Minimum="10" Maximum="500"/> -->
+			<!-- 	 -->
+			<!-- <TextBlock Text="{Binding #BackgroundLines.MajorLineThickness, StringFormat='Major Line Thickness: {0:0.0}'}"/> -->
+			<!-- <Slider Value="{Binding #BackgroundLines.MajorLineThickness, Mode=TwoWay}"  -->
+			<!--         Minimum="0.1" Maximum="10"/> -->
 			
 			<Separator/>
 			
@@ -119,8 +120,7 @@
 		</StackPanel>
 		
 		<sam:SelectAndMove 
-			Name="ExampleSelectAndMove" 
-			SnapGrid = "{Binding #BackgroundLines.SnapGrid}">
+			Name="ExampleSelectAndMove">
 			
 			<sam:SelectAndMove.SelectionBox>
 				<Rectangle 
@@ -128,69 +128,69 @@
 					StrokeThickness="3"/>
 			</sam:SelectAndMove.SelectionBox>
 			
-			<sam:BackgroundGridLines 
-				Name="BackgroundLines" 
+			<sam:BackgroundGridLines
+				Name="BackgroundLines"
 				Opacity="0.3"
 				LineBrush="Gray"/>
 			
-			<TextBlock 
-				Name="Unselectable" 
-				Canvas.Left="10" 
-				Canvas.Top="30" 
-				Background="Chocolate" 
-				Padding="10" 
+			<TextBlock
+				Name="Unselectable"
+				Canvas.Left="10"
+				Canvas.Top="30"
+				Background="Chocolate"
+				Padding="10"
 				sam:Selection.IsSelectable="False"
 				FontWeight="Bold"
 				Text="This can't be selected"/>
 			
-			<Rectangle 
-				Name="Rectangle" 
-				Canvas.Left="100" 
-				Canvas.Top="200" 
-				Width="50" 
-				Height="70" 
+			<Rectangle
+				Name="Rectangle"
+				Canvas.Left="100"
+				Canvas.Top="200"
+				Width="50"
+				Height="70"
 				Fill="Green"/>
 			
-			<Ellipse 
-				Name="Ellipse" 
-				Width="100" 
-				Height="200" 
-				Canvas.Top="50" 
-				Canvas.Left="210" 
+			<Ellipse
+				Name="Ellipse"
+				Width="100"
+				Height="200"
+				Canvas.Top="50"
+				Canvas.Left="210"
 				Fill="Blue"/>
 			
-			<Panel 
-				Name="EllipseWithText" 
-				Canvas.Left="50" 
+			<Panel
+				Name="EllipseWithText"
+				Canvas.Left="50"
 				Canvas.Top="100">
 				
-				<Ellipse 
+				<Ellipse
 					Width="250"
 					Height="50"/>
 				
-				<TextBlock 
-					HorizontalAlignment="Center" 
+				<TextBlock
+					HorizontalAlignment="Center"
 					VerticalAlignment="Center"
 					FontWeight="Bold"
 					Text="This is a more complex control"/>
 			</Panel>
 			
-			<TextBlock 
-				Name="Unmovable" 
-				Canvas.Left="50" 
-				Canvas.Top="300" 
-				Background="MediumVioletRed" 
-				Padding="20" 
+			<TextBlock
+				Name="Unmovable"
+				Canvas.Left="50"
+				Canvas.Top="300"
+				Background="MediumVioletRed"
+				Padding="20"
 				sam:SelectAndMove.IsMovable="False"
 				FontWeight="Bold"
 				Text="This can't be moved"/>
 			
-			<TextBlock 
+			<TextBlock
 				Name="InterestingSelection"
-				Canvas.Left="200" 
-				Canvas.Top="0" 
-				Padding="10" 
-				Background="Brown" 
+				Canvas.Left="200"
+				Canvas.Top="0"
+				Padding="10"
+				Background="Brown"
 				FontWeight="Bold"
 				Text="You can change any styled property on selection"/>
 		</sam:SelectAndMove>

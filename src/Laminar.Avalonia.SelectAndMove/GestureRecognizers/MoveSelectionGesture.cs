@@ -61,7 +61,7 @@ public class MoveSelectionGesture : GestureRecognizer
         _moving.Clear();
 
         var originalBoundsOfSelection = new Rect(0, 0, 0, 0);
-        foreach (var sibling in Selection.GetSelectedSiblings(target).Where(SelectAndMove.GetIsMovable))
+        foreach (var sibling in Selection.GetSelectedSiblings(target)?.Where(SelectAndMove.GetIsMovable) ?? [])
         {
             sibling.RenderTransform ??= new MatrixTransform();
 

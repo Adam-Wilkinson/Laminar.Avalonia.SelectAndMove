@@ -38,37 +38,57 @@ public class Selection
         IsScopeProperty.OverrideDefaultValue<TopLevel>(true);
     }
 
-    public static IAvaloniaReadOnlyList<InputElement> GetSelectedSiblings(InputElement target) => FindScope(target).GetSelected();
+    public static IAvaloniaReadOnlyList<InputElement>? GetSelectedSiblings(InputElement target) => FindScope(target)?.GetSelected();
 
-    public static IAvaloniaReadOnlyList<InputElement> GetSiblings(InputElement target) => FindScope(target).GetSelectable();
+    public static IAvaloniaReadOnlyList<InputElement>? GetSiblings(InputElement target) => FindScope(target)?.GetSelectable();
     
-    public static void ClearSiblingSelection(InputElement target) => FindScope(target).ClearSelection();
+    public static void ClearSiblingSelection(InputElement target) => FindScope(target)?.ClearSelection();
     
     private static void IsSelectableChanged(InputElement element, AvaloniaPropertyChangedEventArgs args)
     {
         if (!args.GetNewValue<bool>()) SetIsSelected(element, false);
-        var scopeSelection = FindScope(element);
+        
         if (args.GetNewValue<bool>())
         {
-            scopeSelection.RegisterSelectable(element);
+            element.AttachedToVisualTree += SelectableElementAttachedToVisualTree;
+            element.DetachedFromVisualTree += SelectableElementDetachedToVisualTree;
+            FindScope(element)?.RegisterSelectable(element);
         }
         else
         {
-            scopeSelection.UnregisterSelectable(element);
+            element.AttachedToVisualTree -= SelectableElementAttachedToVisualTree;
+            element.DetachedFromVisualTree -= SelectableElementDetachedToVisualTree;
+            FindScope(element)?.UnregisterSelectable(element);
+        }
+    }
+
+    private static void SelectableElementAttachedToVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
+    {
+        if (e.AttachmentPoint is InputElement parent)
+        {
+            FindScope(parent)?.RegisterSelectable(parent);
+        }
+    }
+
+    private static void SelectableElementDetachedToVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
+    {
+        if (e.AttachmentPoint is InputElement parent)
+        {
+            FindScope(parent)?.UnregisterSelectable(parent);
         }
     }
 
     private static void IsSelectedChanged(InputElement element, AvaloniaPropertyChangedEventArgs args)
     {
         if (args.Priority is BindingPriority.Inherited) return;
-        FindScope(element).SetIsSelected(element, args.GetNewValue<bool>());
+        FindScope(element)?.SetIsSelected(element, args.GetNewValue<bool>());
     }
 
     private static void IsScopeChanged(InputElement element, AvaloniaPropertyChangedEventArgs args)
     {
         if (args.GetNewValue<bool>())
         {
-            GetScope(element);
+            GetOrCreateScope(element);
         }
         else
         {
@@ -77,16 +97,28 @@ public class Selection
         }
     }
 
-    private static SelectionScope FindScope(InputElement element)
-        => element.GetSelfAndLogicalAncestors().Cast<InputElement>().FirstOrDefault(x => GetIsScope(x) || x is TopLevel) is { } scope
-            ? GetScope(scope)
-            : throw new InvalidOperationException();
-
-    private static SelectionScope GetScope(InputElement element) => Scopes.GetValue(element,
-        e =>
+    private static SelectionScope? FindScope(InputElement element)
+        => element.GetSelfAndLogicalAncestors().Cast<InputElement>().FirstOrDefault(x =>
         {
-            var newValue = new SelectionScope();
-            e.SetValue(SelectedElementsProperty, newValue.GetSelected());
-            return newValue;
-        });
+            if (GetIsScope(x))
+            {
+                return true;
+            }
+
+            if (x is TopLevel topLevelScope)
+            {
+                SetIsScope(topLevelScope, true);
+                return true;
+            }
+
+            return false;
+        }) is { } scopeOwner ? GetOrCreateScope(scopeOwner) : null;
+
+    private static SelectionScope GetOrCreateScope(InputElement element) => !GetIsScope(element) ? throw new InvalidOperationException() 
+        : Scopes.GetValue(element, e =>
+    {
+        SelectionScope newScope = new();
+        element.SetValue(SelectedElementsProperty, newScope.GetSelected());
+        return newScope;
+    });
 }

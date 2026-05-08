@@ -28,6 +28,10 @@ public class SelectionScope
     public void RegisterSelectable(InputElement element)
     {
         _selectable.Add(element);
+        if (Selection.GetIsSelected(element))
+        {
+            SetIsSelected(element, true);
+        }
     }
 
     public void UnregisterSelectable(InputElement element)

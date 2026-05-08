@@ -8,12 +8,19 @@
         x:Class="Laminar.Avalonia.SelectAndMove.MvvmExample.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         AddElementCommand="{Binding AddElementCommand}"
+        DeleteCommand="{Binding DeleteCommand}"
         Title="Laminar.Avalonia.SelectAndMove.MvvmExample">
-    <DockPanel>
-        <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" HorizontalAlignment="Center" Margin="0,4,0,0">
-            <TextBlock VerticalAlignment="Center">New Element Text: </TextBlock>
-            <TextBox VerticalAlignment="Center" Text="{Binding NewElementName}"/>
-        </StackPanel>
+    <DockPanel Margin="0,4,0,0">
+        <UniformGrid Margin="10,0" DockPanel.Dock="Top" Rows="1">
+            <TextBlock Text="Double click to add item" VerticalAlignment="Center" HorizontalAlignment="Left"/>
+        
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <TextBlock VerticalAlignment="Center" Text="New Element Text: "/>
+                <TextBox VerticalAlignment="Center" Text="{Binding NewElementName}"/>
+            </StackPanel>
+        
+            <TextBlock Text="Press delete to delete current selection" VerticalAlignment="Center" HorizontalAlignment="Right"/>
+        </UniformGrid>
         
         <sam:SelectAndMove Name="SelectAndMove" 
                            CornerRadius="10"
@@ -21,6 +28,7 @@
                            Background="#222"
                            DoubleTapped="SelectAndMove_DoubleTapped"
                            LineBrush="#111"
+                           sam:Selection.SelectedElements="{Binding Selection, Mode=OneWayToSource}"
                            ItemsSource="{Binding Items}">
             <sam:SelectAndMove.ItemTemplate>
                 <DataTemplate DataType="vm:SelectAndMoveItem">

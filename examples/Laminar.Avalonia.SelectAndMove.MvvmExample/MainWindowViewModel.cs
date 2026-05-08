@@ -1,8 +1,8 @@
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
+using System.Linq;
 using Avalonia;
+using Avalonia.Collections;
+using Avalonia.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -12,8 +12,10 @@ public partial class MainWindowViewModel : ObservableObject
 {
     [ObservableProperty] public partial string NewElementName { get; set; } = "New Element Name";
 
+    [ObservableProperty] public partial IAvaloniaReadOnlyList<InputElement>? Selection { get; set; }
+    
     public ObservableCollection<SelectAndMoveItem> Items { get; } = [];
-
+    
     [RelayCommand]
     private void AddElement(Point point)
     {
@@ -22,5 +24,15 @@ public partial class MainWindowViewModel : ObservableObject
             Text = NewElementName,
             Position = point
         });
+    }
+
+    [RelayCommand]
+    private void Delete()
+    {
+        if (Selection is null || Selection.Count == 0) return;
+        foreach (var item in Selection.Select(x => x.DataContext).Cast<SelectAndMoveItem>().ToList())
+        {
+            Items.Remove(item);
+        }
     }
 }

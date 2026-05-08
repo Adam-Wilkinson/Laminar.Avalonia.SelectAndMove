@@ -156,6 +156,9 @@ public class SelectAndMove : ItemsControl
         set => SetValue(LineBrushProperty, value);
     }
 
+    public Matrix ComputeCurrentTransform() => Matrix.CreateTranslation(ViewTranslateX, ViewTranslateY) *
+                                               Matrix.CreateScale(ViewZoom, ViewZoom);
+    
     protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
     {
         base.OnApplyTemplate(e);
@@ -245,8 +248,7 @@ public class SelectAndMove : ItemsControl
     private void RecalculateRenderTransform()
     {
         if (_blockRenderRecalculation) return;
-        _transformRoot?.RenderTransform =
-            new MatrixTransform(Matrix.CreateTranslation(ViewTranslateX, ViewTranslateY) * Matrix.CreateScale(ViewZoom, ViewZoom));
+        _transformRoot?.RenderTransform = new MatrixTransform(ComputeCurrentTransform());
     }
     
     private static bool ButtonIsPressed(PointerPointProperties pointerProperties, MouseButton button) => button switch

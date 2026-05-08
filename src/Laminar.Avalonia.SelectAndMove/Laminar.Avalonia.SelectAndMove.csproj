@@ -15,12 +15,14 @@
 	<PackageReadmeFile>README.md</PackageReadmeFile>
 	<RepositoryUrl>https://github.com/Adam-Wilkinson/Laminar.Avalonia.SelectAndMove</RepositoryUrl>
 	<RepositoryType>git</RepositoryType>
-	<PackageTags>Avalonia; Canvas; Control</PackageTags>
+	<PackageTags>Avalonia; Control; Select; Move</PackageTags>
 	<AssemblyVersion>1.1.0</AssemblyVersion>
-	<PackageVersion>1.1.0</PackageVersion>
+	<PackageVersion>2.0.0</PackageVersion>
 	<VersionPrefix>1.1.0</VersionPrefix>
 	<PackageLicenseExpression>MIT</PackageLicenseExpression>
-	<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+	<PackageReleaseNotes>- SelectAndMove is now an ItemsControl rather than a Canvas, and render transforms are applied to the ItemsPanelRoot
+- Added ViewTranslateX and ViewTranslateY properties to SelectAndMove
+- Selection is now much more general, with user-defined selection scopes. This means that multiple SelectAndMoves can be active at once with different selections</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>

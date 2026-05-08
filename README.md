@@ -6,7 +6,7 @@ SelectAndMove is a lightweight, modular Avalonia control for selecting and movin
 [See source code for this example](examples/Laminar.Avalonia.SelectAndMove.Example/MainWindow.axaml)
 
 ## Implementation Details
-The core SelectAndMove class is a Canvas with several GestureRecognisers that manage the select, pan, zoom, move, and box select gestures. These are designed to be portable and can go on any other Panel - making a new Canvas and adding these GestureRecognizers gives identical functionality to the SelectAndMove class. This also allows for functionality to be easily extended by adding additional GestureRecognizers.
+The core SelectAndMove class is a Canvas with several GestureRecognisers that manage the select, move, and box select gestures. These gestures can go on any control and operate on a selection scope system, but move requires a canvas. This also allows for functionality to be easily extended by adding additional GestureRecognizers. Pan and zoom functionality are managed through the RenderTransform of the ItemsPanelRoot, and are exposed through pointer interaction as well as ViewZoom, ViewTranslateX, and ViewTranslateY properties.
 
 Also provided is a BackgroundGridLines class which is designed to be added as a child to the SelectAndMove canvas. It adds grid lines that automatically adjusts to the current zoom level, and provides a "SnapGrid" property that can be bound to the SelectAndMove canvas to snap controls to the grid lines (shown in the [example](examples/Laminar.Avalonia.SelectAndMove.Example/MainWindow.axaml))
 

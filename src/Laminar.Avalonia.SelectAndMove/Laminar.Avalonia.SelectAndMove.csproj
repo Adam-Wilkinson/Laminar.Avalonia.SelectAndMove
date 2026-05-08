@@ -5,7 +5,6 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 	<LangVersion>default</LangVersion>
-	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 	<Title>Laminar SelectAndMove</Title>
 	<Authors>Adam-Wilkinson</Authors>
 	<Company>Laminar</Company>
@@ -25,6 +24,15 @@
 - Selection is now much more general, with user-defined selection scopes. This means that multiple SelectAndMoves can be active at once with different selections</PackageReleaseNotes>
   </PropertyGroup>
 
+	<PropertyGroup>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		<DebugType>portable</DebugType>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<EmbedUntrackedSources>true</EmbedUntrackedSources>
+	</PropertyGroup>
+	
   <ItemGroup>
     <None Include="..\..\README.md">
       <Pack>True</Pack>

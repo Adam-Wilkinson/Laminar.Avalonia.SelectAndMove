@@ -92,96 +92,146 @@ public class SelectAndMove : ItemsControl
         Application.Current?.Resources.MergedDictionaries.Add(selectAndMoveTheme);
     }
 
+    /// <summary>
+    /// Defines the snap grid as tessellations of the given rectangle, interpreted in transformed coordinates 
+    /// </summary>
     public Rect SnapGrid
     {
         get => GetValue(SnapGridProperty);
         set => SetValue(SnapGridProperty, value);
     }
 
+    /// <summary>
+    /// Defines the anchor point by which move operations are quantized to the <see cref="SnapGrid"/>
+    /// </summary>
     public SnapMode SnapMode
     {
         get => GetValue(SnapModeProperty);
         set => SetValue(SnapModeProperty, value);
     }
 
+    /// <summary>
+    /// Key modifiers that must all be held down to select many items
+    /// </summary>
     public KeyModifiers SelectManyKeyModifiers
     {
         get => GetValue(SelectManyKeyModifiersProperty);
         set => SetValue(SelectManyKeyModifiersProperty, value);
     }
 
+    /// <summary>
+    /// The rectangle that is used when applying a box selection. Use this to define the stroke color, fill etc.
+    /// </summary>
     public Rectangle SelectionBox
     {
         get => GetValue(SelectionBoxProperty);
         set => SetValue(SelectionBoxProperty, value);
     }
 
+    /// <summary>
+    /// The mouse button used to trigger a box selection
+    /// </summary>
     public MouseButton BoxSelectMouseButton
     {
         get => GetValue(BoxSelectMouseButtonProperty);
         set => SetValue(BoxSelectMouseButtonProperty, value);
     }
 
+    /// <summary>
+    /// The mouse button that triggers a pan gesture
+    /// </summary>
     public MouseButton PanMouseButton
     {
         get => GetValue(PanMouseButtonProperty);
         set => SetValue(PanMouseButtonProperty, value);
     }
 
+    /// <summary>
+    /// A read-only view of the selected items that are selected by the controls.
+    /// When working from an ItemsSource, this will always be a subset of that ItemsSource
+    /// </summary>
     public IReadOnlyList<object> Selection
     {
         get => GetValue(SelectionProperty);
         set => SetValue(SelectionProperty, value);
     }
 
+    /// <summary>
+    /// The speed at which mouse wheel changes affect the zoom level
+    /// </summary>
     public double ZoomSpeed
     {
         get => GetValue(ZoomSpeedProperty);
         set => SetValue(ZoomSpeedProperty, value);
     }
 
+    /// <summary>
+    /// The current zoom level of the view, in the range (0,infinity). 1 Implies no zoom
+    /// </summary>
     public double ViewZoom
     {
         get => GetValue(ViewZoomProperty);
         set => SetValue(ViewZoomProperty, value);
     }
 
+    /// <summary>
+    /// Translation of the view in the X direction. Default is 0
+    /// </summary>
     public double ViewTranslateX
     {
         get => GetValue(ViewTranslateXProperty);
         set => SetValue(ViewTranslateXProperty, value);
     }
 
+    /// <summary>
+    /// Translation of the view in the Y direction. Default is 0
+    /// </summary>
     public double ViewTranslateY
     {
         get => GetValue(ViewTranslateYProperty);
         set => SetValue(ViewTranslateYProperty, value);
     }
 
+    /// <summary>
+    /// The behavior of the canvas when its bounds are changed.
+    /// Use this to tell SelectAndMove to keep its horizontal center-line, vertical center-line, or zoom range on resizing.
+    /// </summary>
     public ResizeBehavior ResizeBehavior
     {
         get => GetValue(ResizeBehaviorProperty);
         set => SetValue(ResizeBehaviorProperty, value);
     }
     
+    /// <summary>
+    /// The separation between the major grid lines
+    /// </summary>
     public double MajorLineSeparation
     {
         get => GetValue(MajorLineSeparationProperty);
         set => SetValue(MajorLineSeparationProperty, value);
     }
 
+    /// <summary>
+    /// The number of minor grid lines in between the major grid lines
+    /// </summary>
     public int MinorLineCount
     {
         get => GetValue(MinorLineCountProperty);
         set => SetValue(MinorLineCountProperty, value);
     }
 
+    /// <summary>
+    /// The thickness of the major grid lines
+    /// </summary>
     public double MajorLineThickness
     {
         get => GetValue(MajorLineThicknessProperty);
         set => SetValue(MajorLineThicknessProperty, value);
     }
 
+    /// <summary>
+    /// The brush used to draw the grid lines
+    /// </summary>
     public IBrush LineBrush
     {
         get => GetValue(LineBrushProperty);

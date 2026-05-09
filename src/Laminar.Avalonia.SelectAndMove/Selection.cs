@@ -1,9 +1,7 @@
-using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Avalonia;
 using Avalonia.Collections;
 using Avalonia.Controls;
-using Avalonia.Controls.Templates;
 using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.LogicalTree;
@@ -119,7 +117,7 @@ public class Selection
         : Scopes.GetValue(element, e =>
     {
         SelectionScope newScope = new();
-        element.SetValue(SelectedElementsProperty, newScope.GetSelected());
+        e.SetValue(SelectedElementsProperty, newScope.GetSelected());
         return newScope;
     });
 }

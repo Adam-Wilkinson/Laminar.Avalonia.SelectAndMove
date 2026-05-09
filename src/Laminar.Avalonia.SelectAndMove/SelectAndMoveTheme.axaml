@@ -26,7 +26,8 @@
                         
                     </Border.GestureRecognizers>
                     <Panel Name="PART_TransformRoot">
-                        <sam:BackgroundGridLines SnapGrid="{Binding SnapGrid,
+                        <sam:BackgroundGridLines Name="PART_GridLines" 
+                                                 SnapGrid="{Binding SnapGrid,
                                                         RelativeSource={RelativeSource TemplatedParent}, 
                                                         Mode=OneWayToSource}"
                                                  MajorLineSeparation="{TemplateBinding MajorLineSeparation}"

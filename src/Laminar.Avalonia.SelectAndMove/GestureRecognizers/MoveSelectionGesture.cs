@@ -13,7 +13,7 @@ public class MoveSelectionGesture : GestureRecognizer
         AvaloniaProperty.RegisterAttached<MoveSelectionGesture, Rect>(nameof(SnapGrid), typeof(MoveSelectionGesture), new Rect(0, 0, 50, 50));
 
     public static readonly StyledProperty<SnapMode> SnapModeProperty = 
-        AvaloniaProperty.RegisterAttached<MoveSelectionGesture, SnapMode>(nameof(SnapMode), typeof(MoveSelectionGesture), SnapMode.None);
+        AvaloniaProperty.RegisterAttached<MoveSelectionGesture, SnapMode>(nameof(SnapMode), typeof(MoveSelectionGesture));
 
     private readonly List<(InputElement control, Point originalTopLeft)> _moving = [];
 

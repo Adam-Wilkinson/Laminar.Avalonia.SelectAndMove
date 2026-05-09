@@ -45,7 +45,7 @@ jobs:
 
       - name: Pack NuGet
         run: |
-          dotnet pack ./src/SelectAndMove/SelectAndMove.csproj -c Release --no-build \
+          dotnet pack ./src/Laminar.Avalonia.SelectAndMove/Laminar.Avalonia.SelectAndMove.csproj -c Release --no-build \
             -o ./artifacts \
             /p:IncludeSymbols=true \
             /p:SymbolPackageFormat=snupkg

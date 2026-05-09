@@ -1,4 +1,6 @@
-﻿using Avalonia;
+﻿using System.Collections.Specialized;
+using Avalonia;
+using Avalonia.Collections;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Shapes;
@@ -11,8 +13,19 @@ using Laminar.Avalonia.SelectAndMove.GestureRecognizers;
 
 namespace Laminar.Avalonia.SelectAndMove;
 
+[Flags]
+public enum ResizeBehavior
+{
+    None = 0,
+    KeepHorizontalCenterline = 1 << 0,
+    KeepVerticalCenterLine = 1 << 1,
+    KeepCenter = KeepHorizontalCenterline | KeepVerticalCenterLine,
+}
+
 public class SelectAndMove : ItemsControl
 {
+    private static readonly FuncTemplate<Panel?> DefaultPanel = new(() => new Canvas());
+    
     public static readonly AttachedProperty<bool> IsMovableProperty = AvaloniaProperty.RegisterAttached<SelectAndMove, AvaloniaObject, bool>("IsMovable", true);
 
     public static readonly StyledProperty<KeyModifiers> SelectManyKeyModifiersProperty = SelectGesture.SelectManyKeyModifiersProperty.AddOwner<SelectAndMove>();
@@ -23,6 +36,7 @@ public class SelectAndMove : ItemsControl
 
     public static readonly StyledProperty<MouseButton> PanMouseButtonProperty = AvaloniaProperty.Register<SelectAndMove, MouseButton>(nameof(PanMouseButton), MouseButton.Middle);
 
+    public static readonly StyledProperty<IReadOnlyList<object>> SelectionProperty = AvaloniaProperty.Register<SelectAndMove, IReadOnlyList<object>>(nameof(Selection), defaultBindingMode: BindingMode.TwoWay);
     
     public static readonly StyledProperty<double> ZoomSpeedProperty = AvaloniaProperty.Register<SelectAndMove, double>(nameof(ZoomSpeed), 1.0);
 
@@ -45,7 +59,6 @@ public class SelectAndMove : ItemsControl
     
     public static readonly StyledProperty<IBrush> LineBrushProperty = BackgroundGridLines.LineBrushProperty.AddOwner<SelectAndMove>();
     
-    private static readonly FuncTemplate<Panel?> DefaultPanel = new(() => new Canvas());
 
     public static bool GetIsMovable(AvaloniaObject element) => element.GetValue(IsMovableProperty);
 
@@ -53,6 +66,7 @@ public class SelectAndMove : ItemsControl
 
     private PointerEventArgs? _previousPanArgs;
     private bool _blockRenderRecalculation;
+    private bool _selectionChanging;
     private Visual? _transformRoot;
     
     static SelectAndMove()
@@ -63,8 +77,10 @@ public class SelectAndMove : ItemsControl
         
         ItemsPanelProperty.OverrideDefaultValue<SelectAndMove>(DefaultPanel);
         BackgroundProperty.OverrideDefaultValue<SelectAndMove>(Brush.Parse("#00000000"));
-        Selection.IsScopeProperty.OverrideDefaultValue<SelectAndMove>(true);
-
+        Avalonia.SelectAndMove.Selection.IsScopeProperty.OverrideDefaultValue<SelectAndMove>(true);
+        SelectionProperty.Changed.AddClassHandler<SelectAndMove>((sam, args) => sam.SelectionChanged(args));
+        Avalonia.SelectAndMove.Selection.SelectedElementsProperty.Changed.AddClassHandler<SelectAndMove>((sam, args) => sam.SelectedElementsChanged(args));
+        
         ResourceInclude selectAndMoveTheme = new((Uri?)null)
         {
             Source = new Uri("avares://Laminar.Avalonia.SelectAndMove/SelectAndMoveTheme.axaml")
@@ -106,6 +122,12 @@ public class SelectAndMove : ItemsControl
     {
         get => GetValue(PanMouseButtonProperty);
         set => SetValue(PanMouseButtonProperty, value);
+    }
+
+    public IReadOnlyList<object> Selection
+    {
+        get => GetValue(SelectionProperty);
+        set => SetValue(SelectionProperty, value);
     }
 
     public double ZoomSpeed
@@ -168,7 +190,7 @@ public class SelectAndMove : ItemsControl
     protected override void PrepareContainerForItemOverride(Control container, object? item, int index)
     {
         base.PrepareContainerForItemOverride(container, item, index);
-        container.SetValue(Selection.IsSelectableProperty, true, BindingPriority.Style);
+        container.SetValue(Avalonia.SelectAndMove.Selection.IsSelectableProperty, true, BindingPriority.Style);
     }
 
     protected override void OnPointerWheelChanged(PointerWheelEventArgs e)
@@ -260,4 +282,38 @@ public class SelectAndMove : ItemsControl
         MouseButton.XButton2 => pointerProperties.IsXButton2Pressed,
         _ => false,
     };
+    
+    private void SelectedElementsChanged(AvaloniaPropertyChangedEventArgs e)
+    {
+        var (oldValue, newValue) = e.GetOldAndNewValue<IAvaloniaReadOnlyList<InputElement>?>();
+
+        oldValue?.CollectionChanged -= SelectedElementsCollectionChanged;
+        newValue?.CollectionChanged += SelectedElementsCollectionChanged;
+        SelectedElementsCollectionChanged(null, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+    }
+
+    private void SelectedElementsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (_selectionChanging) return;
+        _selectionChanging = true;
+        Selection = Avalonia.SelectAndMove.Selection.GetSelectedElements(this)!
+            .Cast<Control>().Select(x => ItemFromContainer(x) ?? throw new ArgumentNullException()).ToList();
+        _selectionChanging = false;
+    }
+
+    private void SelectionChanged(AvaloniaPropertyChangedEventArgs args)
+    {
+        if (_selectionChanging) return;
+        _selectionChanging = true;
+        Avalonia.SelectAndMove.Selection.ClearSiblingSelection(this);
+        foreach (var selected in args.GetNewValue<IReadOnlyList<object>>())
+        {
+            if (ContainerFromItem(selected) is { } container)
+            {
+                Avalonia.SelectAndMove.Selection.SetIsSelected(container, true);
+            }
+        }
+        
+        _selectionChanging = false;
+    }
 }

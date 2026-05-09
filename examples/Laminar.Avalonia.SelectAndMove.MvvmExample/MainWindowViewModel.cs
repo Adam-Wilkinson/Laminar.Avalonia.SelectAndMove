@@ -1,8 +1,7 @@
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using Avalonia;
-using Avalonia.Collections;
-using Avalonia.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -12,7 +11,7 @@ public partial class MainWindowViewModel : ObservableObject
 {
     [ObservableProperty] public partial string NewElementName { get; set; } = "New Element Name";
 
-    [ObservableProperty] public partial IAvaloniaReadOnlyList<InputElement>? Selection { get; set; }
+    [ObservableProperty] public partial IReadOnlyList<object>? Selection { get; set; }
     
     public ObservableCollection<SelectAndMoveItem> Items { get; } = [];
     
@@ -30,9 +29,15 @@ public partial class MainWindowViewModel : ObservableObject
     private void Delete()
     {
         if (Selection is null || Selection.Count == 0) return;
-        foreach (var item in Selection.Select(x => x.DataContext).Cast<SelectAndMoveItem>().ToList())
+        foreach (var item in Selection.Cast<SelectAndMoveItem>().ToList())
         {
             Items.Remove(item);
         }
+    }
+
+    [RelayCommand]
+    private void SelectMostRecent(int count)
+    {
+        Selection = Items.Skip(Items.Count - count).Take(count).ToList();
     }
 }

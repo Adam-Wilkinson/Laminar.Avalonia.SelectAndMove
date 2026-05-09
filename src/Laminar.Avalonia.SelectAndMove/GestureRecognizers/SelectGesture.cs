@@ -27,7 +27,7 @@ public class SelectGesture : GestureRecognizer
         {
             return;
         }
-
+        
         InputElement? clicked = GetSelectedChildAtPointerPress(e);
         if (clicked is not null && Selection.GetIsSelected(clicked))
         {

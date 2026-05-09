@@ -10,6 +10,10 @@
         AddElementCommand="{Binding AddElementCommand}"
         DeleteCommand="{Binding DeleteCommand}"
         Title="Laminar.Avalonia.SelectAndMove.MvvmExample">
+    <Window.Resources>
+        <x:Int32 x:Key="RecentSelectionCount">1</x:Int32>
+    </Window.Resources>
+    
     <DockPanel Margin="0,4,0,0">
         <UniformGrid Margin="10,0" DockPanel.Dock="Top" Rows="1">
             <TextBlock Text="Double click to add item" VerticalAlignment="Center" HorizontalAlignment="Left"/>
@@ -18,6 +22,12 @@
                 <TextBlock VerticalAlignment="Center" Text="New Element Text: "/>
                 <TextBox VerticalAlignment="Center" Text="{Binding NewElementName}"/>
             </StackPanel>
+            
+            <Button Content="Select most recent"
+                    HorizontalAlignment="Center"
+                    Command="{Binding SelectMostRecentCommand}"
+                    CommandParameter="{StaticResource RecentSelectionCount}"
+                    ToolTip.Tip="This tests setting the selection from the view model"/>
         
             <TextBlock Text="Press delete to delete current selection" VerticalAlignment="Center" HorizontalAlignment="Right"/>
         </UniformGrid>
@@ -27,8 +37,8 @@
                            Margin="4"
                            Background="#222"
                            DoubleTapped="SelectAndMove_DoubleTapped"
+                           Selection="{Binding Selection}"
                            LineBrush="#111"
-                           sam:Selection.SelectedElements="{Binding Selection, Mode=OneWayToSource}"
                            ItemsSource="{Binding Items}">
             <sam:SelectAndMove.ItemTemplate>
                 <DataTemplate DataType="vm:SelectAndMoveItem">

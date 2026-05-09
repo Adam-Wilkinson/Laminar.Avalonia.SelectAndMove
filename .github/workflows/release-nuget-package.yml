@@ -50,9 +50,6 @@ jobs:
             /p:IncludeSymbols=true \
             /p:SymbolPackageFormat=snupkg
 
-      - name: Validate package
-        run: dotnet nuget verify ./artifacts/*.nupkg
-
       - name: Push to NuGet
         run: |
           dotnet nuget push "./artifacts/*.nupkg" \

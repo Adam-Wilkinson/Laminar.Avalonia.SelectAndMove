@@ -19,7 +19,9 @@ public enum ResizeBehavior
     None = 0,
     KeepHorizontalCenterline = 1 << 0,
     KeepVerticalCenterLine = 1 << 1,
+    KeepZoom = 1 << 2,
     KeepCenter = KeepHorizontalCenterline | KeepVerticalCenterLine,
+    KeepView = KeepZoom | KeepCenter,
 }
 
 public class SelectAndMove : ItemsControl
@@ -269,16 +271,24 @@ public class SelectAndMove : ItemsControl
     
     private void BoundsChanged(AvaloniaPropertyChangedEventArgs args)
     {
+        if (!IsLoaded) return;
         var (oldValue, newValue) = args.GetOldAndNewValue<Rect>();
         using var _ = new ChangeTransformScope(this);
         if (ResizeBehavior.HasFlag(ResizeBehavior.KeepHorizontalCenterline))
         {
-            ViewTranslateX += ((newValue.Width - oldValue.Width) / 2);
+            ViewTranslateX += (newValue.Width - oldValue.Width) / 2;
         }
 
         if (ResizeBehavior.HasFlag(ResizeBehavior.KeepVerticalCenterLine))
         {
-            ViewTranslateY += ((newValue.Height - oldValue.Height) / 2);
+            ViewTranslateY += (newValue.Height - oldValue.Height) / 2;
+        }
+
+        if (ResizeBehavior.HasFlag(ResizeBehavior.KeepZoom))
+        {
+            double widthChangeFactor = (newValue.Width - oldValue.Width) / oldValue.Width;
+            double heightChangeFactor = (newValue.Height - oldValue.Height) / oldValue.Height;
+            ViewZoom += ViewZoom * (widthChangeFactor + heightChangeFactor / 2);
         }
     }
     

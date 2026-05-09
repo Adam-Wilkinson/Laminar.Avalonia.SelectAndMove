@@ -206,11 +206,9 @@ public class SelectAndMove : ItemsControl
         Point cursorBefore = e.GetPosition(_transformRoot);
         ViewZoom *= Math.Exp(ZoomSpeed * e.Delta.Y / 5);
         Point positionDelta = e.GetPosition(_transformRoot) - cursorBefore;
-        _blockRenderRecalculation = true;
+        using var _ = new ChangeTransformScope(this);
         ViewTranslateX += positionDelta.X;
         ViewTranslateY +=  positionDelta.Y;
-        _blockRenderRecalculation = false;
-        RecalculateRenderTransform();
     }
 
     protected override void OnPointerMoved(PointerEventArgs e)
@@ -223,12 +221,10 @@ public class SelectAndMove : ItemsControl
 
         if (_previousPanArgs is not null)
         {
-            _blockRenderRecalculation = true;
+            using var _ = new ChangeTransformScope(this);
             Point delta = e.GetPosition(_transformRoot) - _previousPanArgs.GetPosition(_transformRoot);
             ViewTranslateX += delta.X;
             ViewTranslateY += delta.Y;
-            _blockRenderRecalculation = false;
-            RecalculateRenderTransform();
         }
 
         _previousPanArgs = e;
@@ -236,12 +232,10 @@ public class SelectAndMove : ItemsControl
 
     public void ResetView()
     {
-        _blockRenderRecalculation = true;
+        using var _ = new ChangeTransformScope(this);
         ViewZoom = 1.0;
         ViewTranslateX = 0;
         ViewTranslateY = 0;
-        _blockRenderRecalculation = false;
-        RecalculateRenderTransform();
     }
 
     public void FitViewToChildren(double margin)
@@ -267,19 +261,16 @@ public class SelectAndMove : ItemsControl
         double zoomAmount = Math.Min(zoomAmounts.X, zoomAmounts.Y);
         Size offsetFromTopLeft = (bounds.Size - newView.Size) / 2;
         Point topLeft = newView.TopLeft - new Point(offsetFromTopLeft.Width, offsetFromTopLeft.Height);
-        _blockRenderRecalculation = true;
+        using var _ = new ChangeTransformScope(this);
         ViewTranslateX = -topLeft.X;
         ViewTranslateY = -topLeft.Y;
         ViewZoom = zoomAmount;
-        _blockRenderRecalculation = false;
-        RecalculateRenderTransform();
     }
     
     private void BoundsChanged(AvaloniaPropertyChangedEventArgs args)
     {
         var (oldValue, newValue) = args.GetOldAndNewValue<Rect>();
-
-        _blockRenderRecalculation = true;
+        using var _ = new ChangeTransformScope(this);
         if (ResizeBehavior.HasFlag(ResizeBehavior.KeepHorizontalCenterline))
         {
             ViewTranslateX += ((newValue.Width - oldValue.Width) / 2);
@@ -289,9 +280,6 @@ public class SelectAndMove : ItemsControl
         {
             ViewTranslateY += ((newValue.Height - oldValue.Height) / 2);
         }
-
-        _blockRenderRecalculation = false;
-        RecalculateRenderTransform();
     }
     
     private void RecalculateRenderTransform()
@@ -342,5 +330,22 @@ public class SelectAndMove : ItemsControl
         }
         
         _selectionChanging = false;
+    }
+
+    private readonly struct ChangeTransformScope : IDisposable
+    {
+        private readonly SelectAndMove _target;
+        
+        public ChangeTransformScope(SelectAndMove target)
+        {
+            _target = target;
+            _target._blockRenderRecalculation = true;
+        }
+
+        public void Dispose()
+        {
+            _target._blockRenderRecalculation = false;
+            _target.RecalculateRenderTransform();
+        }
     }
 }

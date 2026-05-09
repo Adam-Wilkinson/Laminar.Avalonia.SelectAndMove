@@ -5,9 +5,11 @@ using Avalonia.Input;
 namespace Laminar.Avalonia.SelectAndMove.Example;
 public partial class MainWindow : Window
 {
-    public static readonly SnapMode[] AllSnapModes = (SnapMode[])Enum.GetValues(typeof(SnapMode));
+    public static readonly SnapMode[] AllSnapModes = Enum.GetValues<SnapMode>();
 
-    public static readonly MouseButton[] AllMouseButtons = (MouseButton[])Enum.GetValues(typeof(MouseButton));
+    public static readonly MouseButton[] AllMouseButtons = Enum.GetValues<MouseButton>();
+    
+    public static readonly ResizeBehavior[] AllResizeBehaviors = Enum.GetValues<ResizeBehavior>();
     
     public MainWindow()
     {

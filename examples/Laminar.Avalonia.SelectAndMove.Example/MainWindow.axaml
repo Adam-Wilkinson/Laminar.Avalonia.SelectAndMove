@@ -57,10 +57,11 @@
 			
 			<Separator/>
 
-			<Grid ColumnDefinitions="*,*" RowDefinitions="*,*,*">
+			<Grid ColumnDefinitions="*,*" RowDefinitions="*,*,*,*">
 				
 				<TextBlock
 					Grid.Row="0" Grid.Column="0"
+					VerticalAlignment="Center"
 					Text="Snap Mode: "/>	
 			
 				<ComboBox Name="SnapModeSelector"
@@ -71,6 +72,7 @@
 
 				<TextBlock
 					Grid.Row="1" Grid.Column="0"
+					VerticalAlignment="Center"
 					Text="Pan Mouse Button: "/>
 
 				<ComboBox Name="PanButtonSelector"
@@ -81,6 +83,7 @@
 
 				<TextBlock
 					Grid.Row="2" Grid.Column="0"
+					VerticalAlignment="Center"
 					Text="Box Select Button: "/>
 
 				<ComboBox Name="BoxSelectButtonSelector"
@@ -88,6 +91,17 @@
 				          Grid.Row="2" Grid.Column="1"
 				          ItemsSource="{x:Static loc:MainWindow.AllMouseButtons}"
 				          SelectedItem="{Binding #ExampleSelectAndMove.BoxSelectMouseButton, Mode=TwoWay}"/>
+				
+				<TextBlock
+					Grid.Row="3" Grid.Column="0"
+					VerticalAlignment="Center"
+					Text="Resize behavior: "/>
+				
+				<ComboBox Name="ResizeBehaviorSelector"
+				          Grid.Row="3" Grid.Column="1"
+				          HorizontalAlignment="Stretch"
+				          ItemsSource="{x:Static loc:MainWindow.AllResizeBehaviors}"
+				          SelectedItem="{Binding #ExampleSelectAndMove.ResizeBehavior, Mode=TwoWay}"/>
 			</Grid>
 			
 			<Button

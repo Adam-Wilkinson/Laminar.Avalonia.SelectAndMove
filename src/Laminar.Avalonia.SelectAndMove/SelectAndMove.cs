@@ -46,6 +46,7 @@ public class SelectAndMove : ItemsControl
     
     public static readonly StyledProperty<double> ViewTranslateYProperty = AvaloniaProperty.Register<SelectAndMove, double>(nameof(ViewTranslateY));
     
+    public static readonly StyledProperty<ResizeBehavior> ResizeBehaviorProperty = AvaloniaProperty.Register<SelectAndMove, ResizeBehavior>(nameof(ResizeBehavior));
     
     public static readonly StyledProperty<Rect> SnapGridProperty = MoveSelectionGesture.SnapGridProperty.AddOwner<SelectAndMove>();
 
@@ -74,6 +75,7 @@ public class SelectAndMove : ItemsControl
         ViewZoomProperty.Changed.AddClassHandler<SelectAndMove>((sam, _) => sam.RecalculateRenderTransform());
         ViewTranslateXProperty.Changed.AddClassHandler<SelectAndMove>((sam, _) => sam.RecalculateRenderTransform());
         ViewTranslateYProperty.Changed.AddClassHandler<SelectAndMove>((sam, _) => sam.RecalculateRenderTransform());
+        BoundsProperty.Changed.AddClassHandler<SelectAndMove>((sam, args) => sam.BoundsChanged(args));
         
         ItemsPanelProperty.OverrideDefaultValue<SelectAndMove>(DefaultPanel);
         BackgroundProperty.OverrideDefaultValue<SelectAndMove>(Brush.Parse("#00000000"));
@@ -152,6 +154,12 @@ public class SelectAndMove : ItemsControl
     {
         get => GetValue(ViewTranslateYProperty);
         set => SetValue(ViewTranslateYProperty, value);
+    }
+
+    public ResizeBehavior ResizeBehavior
+    {
+        get => GetValue(ResizeBehaviorProperty);
+        set => SetValue(ResizeBehaviorProperty, value);
     }
     
     public double MajorLineSeparation
@@ -263,6 +271,25 @@ public class SelectAndMove : ItemsControl
         ViewTranslateX = -topLeft.X;
         ViewTranslateY = -topLeft.Y;
         ViewZoom = zoomAmount;
+        _blockRenderRecalculation = false;
+        RecalculateRenderTransform();
+    }
+    
+    private void BoundsChanged(AvaloniaPropertyChangedEventArgs args)
+    {
+        var (oldValue, newValue) = args.GetOldAndNewValue<Rect>();
+
+        _blockRenderRecalculation = true;
+        if (ResizeBehavior.HasFlag(ResizeBehavior.KeepHorizontalCenterline))
+        {
+            ViewTranslateX += ((newValue.Width - oldValue.Width) / 2);
+        }
+
+        if (ResizeBehavior.HasFlag(ResizeBehavior.KeepVerticalCenterLine))
+        {
+            ViewTranslateY += ((newValue.Height - oldValue.Height) / 2);
+        }
+
         _blockRenderRecalculation = false;
         RecalculateRenderTransform();
     }

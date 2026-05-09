@@ -37,6 +37,7 @@
                            Margin="4"
                            Background="#222"
                            DoubleTapped="SelectAndMove_DoubleTapped"
+                           ResizeBehavior="KeepCenter"
                            Selection="{Binding Selection}"
                            LineBrush="#111"
                            ItemsSource="{Binding Items}">

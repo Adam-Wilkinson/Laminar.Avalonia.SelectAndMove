@@ -1,0 +1,78 @@
+name: Release NuGet Package
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.x"
+
+      - name: Install Nerdbank.GitVersioning
+        uses: dotnet/nbgv@master
+        id: nbgv
+
+      - name: Verify tag matches version
+        run: |
+          VERSION=${{ steps.nbgv.outputs.SemVer2 }}
+          TAG=${GITHUB_REF_NAME#v}
+      
+          if [ "$VERSION" != "$TAG" ]; then
+            echo "Tag version ($TAG) does not match NBGV version ($VERSION)"
+            exit 1
+          fi
+
+      - name: Restore
+        run: dotnet restore --locked-mode
+
+      - name: Build (Release)
+        run: dotnet build -c Release --no-restore
+
+      - name: Pack NuGet
+        run: |
+          dotnet pack ./src/SelectAndMove/SelectAndMove.csproj -c Release --no-build \
+            -o ./artifacts \
+            /p:IncludeSymbols=true \
+            /p:SymbolPackageFormat=snupkg
+
+      - name: Validate package
+        run: dotnet nuget verify ./artifacts/*.nupkg
+
+      - name: Push to NuGet
+        run: |
+          dotnet nuget push "./artifacts/*.nupkg" \
+            --api-key ${{ secrets.NUGET_API_KEY }} \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate
+
+          dotnet nuget push "./artifacts/*.snupkg" \
+            --api-key ${{ secrets.NUGET_API_KEY }} \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: ${{ steps.nbgv.outputs.SemVer2 }}
+          tag_name: ${{ github.ref_name }}
+          generate_release_notes: true
+          files: |
+            ./artifacts/*.nupkg
+            ./artefacts/*.snupkg
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

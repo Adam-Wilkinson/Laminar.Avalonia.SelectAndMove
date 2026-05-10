@@ -45,7 +45,7 @@ public class SelectionScope
         if (_mutating) return;
         
 #if DEBUG
-        if (!_selectable.Contains(element)) throw new InvalidOperationException();
+        if (!_selectable.Contains(element)) throw new InvalidOperationException($"Cannot set unselectable element {element} to be selected");
 #endif
         
         if (isSelected)

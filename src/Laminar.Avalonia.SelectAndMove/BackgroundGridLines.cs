@@ -148,7 +148,8 @@ public class BackgroundGridLines : Control
     
     private Rect GetRectInLocal(Rect rect)
     {
-        Matrix transformToParent = this.TransformToVisual(FindRenderTransformAncestor())?.Invert() ?? throw new InvalidOperationException();
+        var ancestor = FindRenderTransformAncestor();
+        Matrix transformToParent = this.TransformToVisual(ancestor)?.Invert() ?? throw new InvalidOperationException($"RectangleGridLines does not have a RenderTransform with respect to its given ancestor {ancestor}");
         Point topLeftInParent = new Point(-Bounds.Left, -Bounds.Top) * transformToParent;
         Point bottomRightInParent = new Point(rect.Width - Bounds.Left, rect.Height - Bounds.Top) * transformToParent;
         return new Rect(topLeftInParent, bottomRightInParent);

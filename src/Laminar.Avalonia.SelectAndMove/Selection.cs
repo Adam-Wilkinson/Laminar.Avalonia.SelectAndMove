@@ -113,7 +113,7 @@ public class Selection
             return false;
         }) is { } scopeOwner ? GetOrCreateScope(scopeOwner) : null;
 
-    private static SelectionScope GetOrCreateScope(InputElement element) => !GetIsScope(element) ? throw new InvalidOperationException() 
+    private static SelectionScope GetOrCreateScope(InputElement element) => !GetIsScope(element) ? throw new InvalidOperationException($"Cannot get selection scope for element {element} since IsScope is false") 
         : Scopes.GetValue(element, e =>
     {
         SelectionScope newScope = new();

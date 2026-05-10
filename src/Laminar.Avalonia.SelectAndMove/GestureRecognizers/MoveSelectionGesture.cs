@@ -4,6 +4,7 @@ using Avalonia.Input;
 using Avalonia.Input.GestureRecognizers;
 using Avalonia.Interactivity;
 using Avalonia.Media;
+using Avalonia.VisualTree;
 
 namespace Laminar.Avalonia.SelectAndMove.GestureRecognizers;
 
@@ -46,7 +47,12 @@ public class MoveSelectionGesture : GestureRecognizer
             return;
         }
 
-        while (interactiveSource is not null && !(interactiveSource is Control currentControl && Selection.GetIsSelected(currentControl) && SelectAndMove.GetIsMovable(currentControl)))
+        while (interactiveSource is not null 
+               && !(interactiveSource is Control currentControl 
+                    && Selection.GetIsSelectable(currentControl)
+                    && Selection.GetIsSelected(currentControl) 
+                    && SelectAndMove.GetIsMovable(currentControl)
+                    && interactiveSource.GetVisualParent() is Canvas))
         {
             interactiveSource = interactiveSource.GetInteractiveParent()!;
         }
@@ -64,8 +70,18 @@ public class MoveSelectionGesture : GestureRecognizer
         foreach (var sibling in Selection.GetSelectedSiblings(target)?.Where(SelectAndMove.GetIsMovable) ?? [])
         {
             sibling.RenderTransform ??= new MatrixTransform();
-
+            
             Point controlTopLeftToParent = new(Canvas.GetLeft(sibling), Canvas.GetTop(sibling));
+            if (double.IsNaN(controlTopLeftToParent.X))
+            {
+                controlTopLeftToParent = controlTopLeftToParent.WithX(0);
+            }
+
+            if (double.IsNaN(controlTopLeftToParent.Y))
+            {
+                controlTopLeftToParent = controlTopLeftToParent.WithY(0);
+            }
+            
             originalBoundsOfSelection = originalBoundsOfSelection.Union(sibling.Bounds);
             _moving.Add((sibling, controlTopLeftToParent));
         }

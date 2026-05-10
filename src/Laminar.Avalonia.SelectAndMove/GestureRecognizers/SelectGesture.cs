@@ -23,12 +23,12 @@ public class SelectGesture : GestureRecognizer
     {
         if (Target is not InputElement target) return;
         
-        if (!e.GetCurrentPoint(null).Properties.IsLeftButtonPressed)
+        if (!e.Properties.IsLeftButtonPressed)
         {
             return;
         }
         
-        InputElement? clicked = GetSelectedChildAtPointerPress(e);
+        InputElement? clicked = GetSelectableChildAtPointerPress(e);
         if (clicked is not null && Selection.GetIsSelected(clicked))
         {
             return;
@@ -58,7 +58,7 @@ public class SelectGesture : GestureRecognizer
     {
     }
     
-    private InputElement? GetSelectedChildAtPointerPress(PointerPressedEventArgs point)
+    private InputElement? GetSelectableChildAtPointerPress(PointerPressedEventArgs point)
     {
         if (Target is not InputElement target || TopLevel.GetTopLevel(target) is not { } topLevel)
         {
@@ -67,7 +67,7 @@ public class SelectGesture : GestureRecognizer
         
         InputElement? currentControl = null;
         
-        foreach (var child in topLevel.GetVisualAt(point.GetPosition(topLevel))?.GetSelfAndVisualAncestors().Cast<InputElement>() ?? [])
+        foreach (var child in topLevel.GetVisualsAt(point.GetPosition(topLevel)).SelectMany(x => x.GetSelfAndVisualAncestors()).Cast<InputElement>())
         {
             if (Selection.GetIsSelectable(child) 
                 && HitTest(point, child) 

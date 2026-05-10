@@ -201,6 +201,16 @@
 				Background="Brown"
 				FontWeight="Bold"
 				Text="You can change any styled property on selection"/>
+			
+			<StackPanel Name="HasSlider"
+			            Canvas.Left="400"
+						Canvas.Top="200"
+						Background="Maroon">
+				<TextBlock Padding="15">This control has a slider and a checkbox</TextBlock>
+				<Slider Minimum="0" Maximum="10" Margin="5"/>
+				<CheckBox IsChecked="{Binding $self.(sam:Selection.IsSelected)}" 
+				          HorizontalAlignment="Center">Is Selected</CheckBox>
+			</StackPanel>
 		</sam:SelectAndMove>
 	</DockPanel>
 

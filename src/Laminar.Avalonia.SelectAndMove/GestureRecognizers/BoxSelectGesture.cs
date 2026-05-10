@@ -65,7 +65,6 @@ public class BoxSelectGesture : GestureRecognizer
             return;
         }
 
-        Capture(e.Pointer);
         _capturedPointer = e.Pointer;
 
         Selection.SetIsSelectable(SelectionBox, false);
@@ -77,6 +76,11 @@ public class BoxSelectGesture : GestureRecognizer
         if (Target is not InputElement target || e.Pointer != _capturedPointer || _originalClick is null)
         {
             return;
+        }
+
+        if (e.Pointer.Captured is null)
+        {
+            Capture(e.Pointer);
         }
 
         if (!_selectionBoxAdded && OverlayLayer.GetOverlayLayer(target) is { } overlayLayer)
@@ -114,7 +118,7 @@ public class BoxSelectGesture : GestureRecognizer
 
     protected override void PointerReleased(PointerReleasedEventArgs e)
     {
-        _capturedPointer = null;
+        EndGesture();
     }
 
     protected override void PointerCaptureLost(IPointer pointer)
@@ -127,6 +131,7 @@ public class BoxSelectGesture : GestureRecognizer
         if (Target is not Visual visualTarget) return;
         OverlayLayer.GetOverlayLayer(visualTarget)?.Children.Remove(_drawingCanvas);
         _capturedPointer = null;
+        _originalClick = null;
         _selectionBoxAdded = false;
     }
 

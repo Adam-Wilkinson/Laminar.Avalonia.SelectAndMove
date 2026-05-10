@@ -67,11 +67,13 @@ public class SelectGesture : GestureRecognizer
         
         InputElement? currentControl = null;
         
-        foreach (var child in topLevel.GetVisualsAt(point.GetPosition(topLevel)).SelectMany(x => x.GetSelfAndVisualAncestors()).Cast<InputElement>())
+        foreach (var child in topLevel.GetVisualsAt(point.GetPosition(topLevel))
+                     .Select(visualAtCursor => visualAtCursor
+                         .GetSelfAndVisualAncestors()
+                         .FirstOrDefault(ancestor => ancestor is InputElement element &&  Selection.GetIsSelectable(element)))
+                     .OfType<InputElement>())
         {
-            if (Selection.GetIsSelectable(child) 
-                && HitTest(point, child) 
-                && (currentControl is null || currentControl.ZIndex <= child.ZIndex))
+            if (HitTest(point, child) && (currentControl is null || currentControl.ZIndex >= child.ZIndex))
             {
                 currentControl = child;
             }

@@ -19,7 +19,10 @@ public class BoxSelectGesture : GestureRecognizer
     public static readonly StyledProperty<MouseButton> BoxSelectMouseButtonProperty =
         AvaloniaProperty.Register<BoxSelectGesture, MouseButton>(nameof(BoxSelectMouseButton), MouseButton.Left);
     
-    private readonly Canvas _drawingCanvas = new();
+    private readonly Canvas _drawingCanvas = new()
+    {
+        IsHitTestVisible = false
+    };
     
     private bool _selectionBoxAdded;
     private PointerPressedEventArgs? _originalClick;

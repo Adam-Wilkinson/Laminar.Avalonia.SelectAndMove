@@ -18,9 +18,10 @@
         <PackageReference Include="Avalonia.Fonts.Inter" Version="12.0.2" />
         <PackageReference Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.1" />
         <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+        <PackageReference Include="Laminar.Avalonia.SelectAndMove" Version="2.3.3" />
     </ItemGroup>
 
-    <ItemGroup>
-      <ProjectReference Include="..\..\src\Laminar.Avalonia.SelectAndMove\Laminar.Avalonia.SelectAndMove.csproj" />
-    </ItemGroup>
+<!--    <ItemGroup>-->
+<!--      <ProjectReference Include="..\..\src\Laminar.Avalonia.SelectAndMove\Laminar.Avalonia.SelectAndMove.csproj" />-->
+<!--    </ItemGroup>-->
 </Project>

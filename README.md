@@ -30,7 +30,7 @@ Thanks to the [PanAndZoom](https://github.com/wieslawsoltes/PanAndZoom) for name
 ## Resources
 [GitHub Repository](https://github.com/Adam-Wilkinson/Laminar.Avalonia.SelectAndMove)
 
-[NuGet Package](https://www.nuget.org/packages/Laminar.Avalonia.SelectAndMove/2.3.2)
+[NuGet Package](https://www.nuget.org/packages/Laminar.Avalonia.SelectAndMove/2.3.10)
 
 ## License
 

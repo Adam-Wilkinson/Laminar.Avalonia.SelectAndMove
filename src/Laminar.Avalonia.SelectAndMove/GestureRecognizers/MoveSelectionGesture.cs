@@ -36,7 +36,11 @@ public class MoveSelectionGesture : GestureRecognizer
 
     protected override void PointerPressed(PointerPressedEventArgs e)
     {
-        if (e.Pointer is not Pointer pointer || pointer.IsGestureRecognitionSkipped || Target is not InputElement target || !e.Properties.IsLeftButtonPressed)
+        if (e.Pointer is not Pointer pointer
+            || e.Handled
+            || pointer.IsGestureRecognitionSkipped 
+            || Target is not InputElement target 
+            || !e.Properties.IsLeftButtonPressed)
         {
             return;
         }
@@ -97,6 +101,7 @@ public class MoveSelectionGesture : GestureRecognizer
             return;
         }
 
+        
         Point targetDelta = e.GetPosition(visualTarget) - _originalClickPoint;
 
         foreach ((InputElement control, Point originalControlTopLeft) in _moving)
@@ -137,11 +142,18 @@ public class MoveSelectionGesture : GestureRecognizer
 
     protected override void PointerCaptureLost(IPointer pointer)
     {
-        _capturedPointer = null;
+        EndGesture();
     }
 
     protected override void PointerReleased(PointerReleasedEventArgs e)
     {
+        EndGesture();
+    }
+
+    private void EndGesture()
+    {
+        _capturedPointer?.Capture(null);
+        _capturedPointer = null;
     }
 
     private static Point? GetSnapPoint(Rect boundsRect, SnapMode snapMode) => snapMode switch

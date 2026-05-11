@@ -21,12 +21,9 @@ public class SelectGesture : GestureRecognizer
 
     protected override void PointerPressed(PointerPressedEventArgs e)
     {
-        if (Target is not InputElement target) return;
-        
-        if (!e.Properties.IsLeftButtonPressed)
-        {
-            return;
-        }
+        if (Target is not InputElement target
+            || e.Handled
+            || !e.Properties.IsLeftButtonPressed) return;
         
         InputElement? clicked = GetSelectableChildAtPointerPress(e);
         if (clicked is not null && Selection.GetIsSelected(clicked))
@@ -70,7 +67,8 @@ public class SelectGesture : GestureRecognizer
         foreach (var child in topLevel.GetVisualsAt(point.GetPosition(topLevel))
                      .Select(visualAtCursor => visualAtCursor
                          .GetSelfAndVisualAncestors()
-                         .FirstOrDefault(ancestor => ancestor is InputElement element &&  Selection.GetIsSelectable(element)))
+                         .FirstOrDefault(ancestor => 
+                             ancestor is InputElement element && Selection.GetIsSelectable(element)))
                      .OfType<InputElement>())
         {
             if (HitTest(point, child) && (currentControl is null || currentControl.ZIndex >= child.ZIndex))

@@ -59,14 +59,16 @@ public class BoxSelectGesture : GestureRecognizer
     protected override void PointerPressed(PointerPressedEventArgs e)
     {
         if (e.Pointer is not Pointer pointer 
+            || e.Handled
             || pointer.IsGestureRecognitionSkipped 
             || !ButtonIsPressed(e.Properties, BoxSelectMouseButton))
         {
             return;
         }
 
+        Capture(e.Pointer);
         _capturedPointer = e.Pointer;
-
+        
         Selection.SetIsSelectable(SelectionBox, false);
         _originalClick = e;
     }
@@ -76,11 +78,6 @@ public class BoxSelectGesture : GestureRecognizer
         if (Target is not InputElement target || e.Pointer != _capturedPointer || _originalClick is null)
         {
             return;
-        }
-
-        if (e.Pointer.Captured is null)
-        {
-            Capture(e.Pointer);
         }
 
         if (!_selectionBoxAdded && OverlayLayer.GetOverlayLayer(target) is { } overlayLayer)

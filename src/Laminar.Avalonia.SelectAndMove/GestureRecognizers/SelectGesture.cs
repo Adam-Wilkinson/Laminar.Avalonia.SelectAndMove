@@ -71,7 +71,8 @@ public class SelectGesture : GestureRecognizer
                              ancestor is InputElement element && Selection.GetIsSelectable(element)))
                      .OfType<InputElement>())
         {
-            if (HitTest(point, child) && (currentControl is null || currentControl.ZIndex >= child.ZIndex))
+            if (HitTest(point, child) 
+                && (currentControl is null || (Selection.GetIsSelected(currentControl) && currentControl.ZIndex >= child.ZIndex)))
             {
                 currentControl = child;
             }

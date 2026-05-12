@@ -1,9 +1,8 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:sam="using:Laminar.Avalonia.SelectAndMove"
-                    xmlns:g="using:Laminar.Avalonia.SelectAndMove.GestureRecognizers">
+                    xmlns:sam="using:Laminar.Avalonia.SelectAndMove">
     <ControlTheme TargetType="sam:SelectAndMove" x:Key="{x:Type sam:SelectAndMove}">
-        <Setter Property="LineBrush" Value="{DynamicResource SystemBaseLowColor}"/>
+        <Setter Property="sam:BackgroundGridLines.LineBrush" Value="{DynamicResource SystemBaseLowColor}"/>
         
         <Setter Property="Template">
             <ControlTemplate>
@@ -15,14 +14,14 @@
                         ClipToBounds="{TemplateBinding ClipToBounds}"
                         CornerRadius="{TemplateBinding CornerRadius}">
                     <Border.GestureRecognizers>
-                        <g:SelectGesture SelectManyKeyModifiers="{TemplateBinding SelectManyKeyModifiers}"/>
+                        <sam:SelectGesture SelectManyKeyModifiers="{TemplateBinding (sam:SelectGesture.SelectManyKeyModifiers)}"/>
                         
-                        <g:MoveSelectionGesture SnapGrid="{TemplateBinding SnapGrid}"
-                                                SnapMode="{TemplateBinding SnapMode}"/>
+                        <sam:MoveSelectionGesture SnapGrid="{TemplateBinding SnapGrid}"
+                                                  SnapMode="{TemplateBinding (sam:MoveSelectionGesture.SnapMode)}"/>
                         
-                        <g:BoxSelectGesture SelectManyKeyModifiers="{TemplateBinding SelectManyKeyModifiers}"
+                        <sam:BoxSelectGesture SelectManyKeyModifiers="{TemplateBinding (sam:BoxSelectGesture.SelectManyKeyModifiers)}"
                                             SelectionBox="{TemplateBinding SelectionBox}"
-                                            BoxSelectMouseButton="{TemplateBinding BoxSelectMouseButton}"/>
+                                            BoxSelectMouseButton="{TemplateBinding (sam:BoxSelectGesture.BoxSelectMouseButton)}"/>
                         
                     </Border.GestureRecognizers>
                     <Panel Name="PART_TransformRoot">
@@ -30,10 +29,10 @@
                                                  SnapGrid="{Binding SnapGrid,
                                                         RelativeSource={RelativeSource TemplatedParent}, 
                                                         Mode=OneWayToSource}"
-                                                 MajorLineSeparation="{TemplateBinding MajorLineSeparation}"
-                                                 MajorLineThickness="{TemplateBinding MajorLineThickness}"
-                                                 MinorLineCount="{TemplateBinding MinorLineCount}"
-                                                 LineBrush="{TemplateBinding LineBrush}"/>
+                                                 MajorLineSeparation="{TemplateBinding (sam:BackgroundGridLines.MajorLineSeparation)}"
+                                                 MajorLineThickness="{TemplateBinding (sam:BackgroundGridLines.MajorLineThickness)}"
+                                                 MinorLineCount="{TemplateBinding (sam:BackgroundGridLines.MinorLineCount)}"
+                                                 LineBrush="{TemplateBinding (sam:BackgroundGridLines.LineBrush)}"/>
                         <ItemsPresenter Name="PART_ItemsPresenter"
                                         IsHitTestVisible="True"
                                         ItemsPanel="{TemplateBinding ItemsPanel}"/>

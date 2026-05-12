@@ -1,5 +1,4 @@
 ﻿using Avalonia;
-using Laminar.Avalonia.SelectAndMove.GestureRecognizers;
 
 namespace Laminar.Avalonia.SelectAndMove.UnitTests.GestureRecognisers.UnitTests;
 

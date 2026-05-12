@@ -6,7 +6,7 @@ using Avalonia.Input;
 using Avalonia.Input.GestureRecognizers;
 using Avalonia.Media;
 
-namespace Laminar.Avalonia.SelectAndMove.GestureRecognizers;
+namespace Laminar.Avalonia.SelectAndMove;
 
 public class BoxSelectGesture : GestureRecognizer
 {

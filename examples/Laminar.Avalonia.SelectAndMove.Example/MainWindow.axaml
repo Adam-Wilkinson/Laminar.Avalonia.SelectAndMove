@@ -23,16 +23,16 @@
 				
 				<NumericUpDown Grid.Column="1"
 					VerticalAlignment="Center"
-					Value="{Binding #ExampleSelectAndMove.MinorLineCount, Mode=TwoWay}"
+					Value="{Binding #ExampleSelectAndMove.(sam:BackgroundGridLines.MinorLineCount), Mode=TwoWay}"
 					Text="Test"/>
 			</Grid>
 				
-			<TextBlock Text="{Binding #ExampleSelectAndMove.MajorLineSeparation, StringFormat='Major Line Separation: {0:0.0}'}"/>
-			<Slider Value="{Binding #ExampleSelectAndMove.MajorLineSeparation, Mode=TwoWay}"
+			<TextBlock Text="{Binding #ExampleSelectAndMove.(sam:BackgroundGridLines.MajorLineSeparation), StringFormat='Major Line Separation: {0:0.0}'}"/>
+			<Slider Value="{Binding #ExampleSelectAndMove.(sam:BackgroundGridLines.MajorLineSeparation), Mode=TwoWay}"
 			        Minimum="10" Maximum="500"/>
 				
-			<TextBlock Text="{Binding #ExampleSelectAndMove.MajorLineThickness, StringFormat='Major Line Thickness: {0:0.0}'}"/>
-			<Slider Value="{Binding #ExampleSelectAndMove.MajorLineThickness, Mode=TwoWay}"
+			<TextBlock Text="{Binding #ExampleSelectAndMove.(sam:BackgroundGridLines.MajorLineThickness), StringFormat='Major Line Thickness: {0:0.0}'}"/>
+			<Slider Value="{Binding #ExampleSelectAndMove.(sam:BackgroundGridLines.MajorLineThickness), Mode=TwoWay}"
 			        Minimum="0.1" Maximum="10"/>
 			
 			<Separator/>
@@ -68,7 +68,7 @@
 				          Grid.Row="0" Grid.Column="1"
 				          HorizontalAlignment="Stretch"
 				          ItemsSource="{x:Static loc:MainWindow.AllSnapModes}"
-				          SelectedItem="{Binding #ExampleSelectAndMove.SnapMode, Mode=TwoWay}"/>
+				          SelectedItem="{Binding #ExampleSelectAndMove.(sam:MoveSelectionGesture.SnapMode), Mode=TwoWay}"/>
 
 				<TextBlock
 					Grid.Row="1" Grid.Column="0"
@@ -90,7 +90,7 @@
 				          HorizontalAlignment="Stretch"
 				          Grid.Row="2" Grid.Column="1"
 				          ItemsSource="{x:Static loc:MainWindow.AllMouseButtons}"
-				          SelectedItem="{Binding #ExampleSelectAndMove.BoxSelectMouseButton, Mode=TwoWay}"/>
+				          SelectedItem="{Binding #ExampleSelectAndMove.(sam:BoxSelectGesture.BoxSelectMouseButton), Mode=TwoWay}"/>
 				
 				<TextBlock
 					Grid.Row="3" Grid.Column="0"
@@ -189,7 +189,7 @@
 				Canvas.Top="300"
 				Background="MediumVioletRed"
 				Padding="20"
-				sam:SelectAndMove.IsMovable="False"
+				sam:MoveSelectionGesture.IsMovable="False"
 				FontWeight="Bold"
 				Text="This can't be moved"/>
 			

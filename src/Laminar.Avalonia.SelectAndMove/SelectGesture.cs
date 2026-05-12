@@ -4,7 +4,7 @@ using Avalonia.Input;
 using Avalonia.Input.GestureRecognizers;
 using Avalonia.VisualTree;
 
-namespace Laminar.Avalonia.SelectAndMove.GestureRecognizers;
+namespace Laminar.Avalonia.SelectAndMove;
 
 public class SelectGesture : GestureRecognizer
 {

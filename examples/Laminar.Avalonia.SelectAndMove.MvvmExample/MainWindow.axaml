@@ -39,7 +39,7 @@
                            DoubleTapped="SelectAndMove_DoubleTapped"
                            ResizeBehavior="KeepView"
                            Selection="{Binding Selection}"
-                           LineBrush="#111"
+                           sam:BackgroundGridLines.LineBrush="#111"
                            ItemsSource="{Binding Items}">
             <sam:SelectAndMove.ItemTemplate>
                 <DataTemplate DataType="vm:SelectAndMoveItem">

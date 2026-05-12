@@ -9,7 +9,6 @@ using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Markup.Xaml.Styling;
 using Avalonia.Media;
-using Laminar.Avalonia.SelectAndMove.GestureRecognizers;
 
 namespace Laminar.Avalonia.SelectAndMove;
 
@@ -28,13 +27,7 @@ public class SelectAndMove : ItemsControl
 {
     private static readonly FuncTemplate<Panel?> DefaultPanel = new(() => new Canvas());
     
-    public static readonly AttachedProperty<bool> IsMovableProperty = AvaloniaProperty.RegisterAttached<SelectAndMove, AvaloniaObject, bool>("IsMovable", true);
-
-    public static readonly StyledProperty<KeyModifiers> SelectManyKeyModifiersProperty = SelectGesture.SelectManyKeyModifiersProperty.AddOwner<SelectAndMove>();
-
     public static readonly StyledProperty<Rectangle> SelectionBoxProperty = BoxSelectGesture.SelectionBoxProperty.AddOwner<SelectAndMove>();
-
-    public static readonly StyledProperty<MouseButton> BoxSelectMouseButtonProperty = BoxSelectGesture.BoxSelectMouseButtonProperty.AddOwner<SelectAndMove>();
 
     public static readonly StyledProperty<MouseButton> PanMouseButtonProperty = AvaloniaProperty.Register<SelectAndMove, MouseButton>(nameof(PanMouseButton), MouseButton.Middle);
 
@@ -51,21 +44,6 @@ public class SelectAndMove : ItemsControl
     public static readonly StyledProperty<ResizeBehavior> ResizeBehaviorProperty = AvaloniaProperty.Register<SelectAndMove, ResizeBehavior>(nameof(ResizeBehavior));
     
     public static readonly StyledProperty<Rect> SnapGridProperty = MoveSelectionGesture.SnapGridProperty.AddOwner<SelectAndMove>();
-
-    public static readonly StyledProperty<SnapMode> SnapModeProperty = MoveSelectionGesture.SnapModeProperty.AddOwner<SelectAndMove>();
-    
-    public static readonly StyledProperty<double> MajorLineSeparationProperty = BackgroundGridLines.MajorLineSeparationProperty.AddOwner<SelectAndMove>();
-
-    public static readonly StyledProperty<double> MajorLineThicknessProperty = BackgroundGridLines.MajorLineThicknessProperty.AddOwner<SelectAndMove>();
-        
-    public static readonly StyledProperty<int> MinorLineCountProperty = BackgroundGridLines.MinorLineCountProperty.AddOwner<SelectAndMove>();
-    
-    public static readonly StyledProperty<IBrush> LineBrushProperty = BackgroundGridLines.LineBrushProperty.AddOwner<SelectAndMove>();
-    
-
-    public static bool GetIsMovable(AvaloniaObject element) => element.GetValue(IsMovableProperty);
-
-    public static void SetIsMovable(AvaloniaObject element, bool value) => element.SetValue(IsMovableProperty, value);
 
     private PointerEventArgs? _previousPanArgs;
     private bool _blockRenderRecalculation;
@@ -102,39 +80,12 @@ public class SelectAndMove : ItemsControl
     }
 
     /// <summary>
-    /// Defines the anchor point by which move operations are quantized to the <see cref="SnapGrid"/>
-    /// </summary>
-    public SnapMode SnapMode
-    {
-        get => GetValue(SnapModeProperty);
-        set => SetValue(SnapModeProperty, value);
-    }
-
-    /// <summary>
-    /// Key modifiers that must all be held down to select many items
-    /// </summary>
-    public KeyModifiers SelectManyKeyModifiers
-    {
-        get => GetValue(SelectManyKeyModifiersProperty);
-        set => SetValue(SelectManyKeyModifiersProperty, value);
-    }
-
-    /// <summary>
     /// The rectangle that is used when applying a box selection. Use this to define the stroke color, fill etc.
     /// </summary>
     public Rectangle SelectionBox
     {
         get => GetValue(SelectionBoxProperty);
         set => SetValue(SelectionBoxProperty, value);
-    }
-
-    /// <summary>
-    /// The mouse button used to trigger a box selection
-    /// </summary>
-    public MouseButton BoxSelectMouseButton
-    {
-        get => GetValue(BoxSelectMouseButtonProperty);
-        set => SetValue(BoxSelectMouseButtonProperty, value);
     }
 
     /// <summary>
@@ -200,42 +151,6 @@ public class SelectAndMove : ItemsControl
     {
         get => GetValue(ResizeBehaviorProperty);
         set => SetValue(ResizeBehaviorProperty, value);
-    }
-    
-    /// <summary>
-    /// The separation between the major grid lines
-    /// </summary>
-    public double MajorLineSeparation
-    {
-        get => GetValue(MajorLineSeparationProperty);
-        set => SetValue(MajorLineSeparationProperty, value);
-    }
-
-    /// <summary>
-    /// The number of minor grid lines in between the major grid lines
-    /// </summary>
-    public int MinorLineCount
-    {
-        get => GetValue(MinorLineCountProperty);
-        set => SetValue(MinorLineCountProperty, value);
-    }
-
-    /// <summary>
-    /// The thickness of the major grid lines
-    /// </summary>
-    public double MajorLineThickness
-    {
-        get => GetValue(MajorLineThicknessProperty);
-        set => SetValue(MajorLineThicknessProperty, value);
-    }
-
-    /// <summary>
-    /// The brush used to draw the grid lines
-    /// </summary>
-    public IBrush LineBrush
-    {
-        get => GetValue(LineBrushProperty);
-        set => SetValue(LineBrushProperty, value);
     }
 
     public Matrix ComputeCurrentTransform() => Matrix.CreateTranslation(ViewTranslateX, ViewTranslateY) *

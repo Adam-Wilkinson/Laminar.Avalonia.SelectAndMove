@@ -6,16 +6,20 @@ using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.VisualTree;
 
-namespace Laminar.Avalonia.SelectAndMove.GestureRecognizers;
+namespace Laminar.Avalonia.SelectAndMove;
 
 public class MoveSelectionGesture : GestureRecognizer
 {
-    public static readonly StyledProperty<Rect> SnapGridProperty = 
-        AvaloniaProperty.RegisterAttached<MoveSelectionGesture, Rect>(nameof(SnapGrid), typeof(MoveSelectionGesture), new Rect(0, 0, 50, 50));
+    public static readonly StyledProperty<Rect> SnapGridProperty = AvaloniaProperty.RegisterAttached<MoveSelectionGesture, Rect>(nameof(SnapGrid), typeof(MoveSelectionGesture), new Rect(0, 0, 50, 50));
 
-    public static readonly StyledProperty<SnapMode> SnapModeProperty = 
-        AvaloniaProperty.RegisterAttached<MoveSelectionGesture, SnapMode>(nameof(SnapMode), typeof(MoveSelectionGesture));
+    public static readonly StyledProperty<SnapMode> SnapModeProperty = AvaloniaProperty.RegisterAttached<MoveSelectionGesture, SnapMode>(nameof(SnapMode), typeof(MoveSelectionGesture));
 
+    public static readonly AttachedProperty<bool> IsMovableProperty = AvaloniaProperty.RegisterAttached<SelectAndMove, AvaloniaObject, bool>("IsMovable", true);
+    
+    public static bool GetIsMovable(AvaloniaObject element) => element.GetValue(IsMovableProperty);
+
+    public static void SetIsMovable(AvaloniaObject element, bool value) => element.SetValue(IsMovableProperty, value);
+    
     private readonly List<(InputElement control, Point originalTopLeft)> _moving = [];
 
     private Point _originalClickPoint = new(0, 0);
@@ -55,7 +59,7 @@ public class MoveSelectionGesture : GestureRecognizer
                && !(interactiveSource is Control currentControl 
                     && Selection.GetIsSelectable(currentControl)
                     && Selection.GetIsSelected(currentControl) 
-                    && SelectAndMove.GetIsMovable(currentControl)
+                    && GetIsMovable(currentControl)
                     && interactiveSource.GetVisualParent() is Canvas))
         {
             interactiveSource = interactiveSource.GetInteractiveParent()!;
@@ -71,7 +75,7 @@ public class MoveSelectionGesture : GestureRecognizer
         _moving.Clear();
 
         var originalBoundsOfSelection = new Rect(0, 0, 0, 0);
-        foreach (var sibling in Selection.GetSelectedSiblings(target)?.Where(SelectAndMove.GetIsMovable) ?? [])
+        foreach (var sibling in Selection.GetSelectedSiblings(target)?.Where(GetIsMovable) ?? [])
         {
             sibling.RenderTransform ??= new MatrixTransform();
             

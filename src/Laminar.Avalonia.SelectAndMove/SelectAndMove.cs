@@ -45,6 +45,10 @@ public class SelectAndMove : ItemsControl
     
     public static readonly StyledProperty<Rect> SnapGridProperty = MoveSelectionGesture.SnapGridProperty.AddOwner<SelectAndMove>();
 
+    public static readonly DirectProperty<SelectAndMove, Visual> TransformRootProperty = AvaloniaProperty.RegisterDirect<SelectAndMove, Visual>("TransformRoot", sam => sam._transformRoot ?? sam);
+
+    public Visual TransformRoot => _transformRoot ?? this;
+    
     private PointerEventArgs? _previousPanArgs;
     private bool _blockRenderRecalculation;
     private bool _selectionChanging;
@@ -160,6 +164,7 @@ public class SelectAndMove : ItemsControl
     {
         base.OnApplyTemplate(e);
         _transformRoot = e.NameScope.Find<Visual>("PART_TransformRoot");
+        RaisePropertyChanged(TransformRootProperty, this, _transformRoot!);
     }
 
     protected override void PrepareContainerForItemOverride(Control container, object? item, int index)

@@ -1,10 +1,10 @@
 {
   "$schema": "https://raw.githubusercontent.com/dotnet/Nerdbank.GitVersioning/main/src/NerdBank.GitVersioning/version.schema.json",
   "version": "3.0-alpha",
-  "versionHeightOffset": 1,
+  "versionHeightOffset": 2,
   "publicReleaseRefSpec": [ 
     "^refs/heads/master$",
-    "^refs/tags/v\\d+\\.\\d+\\.\\d+-*$"
+    "^refs/tags/v\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?$"
   ],
   "pathFilters": [":/src"],
   "release": {

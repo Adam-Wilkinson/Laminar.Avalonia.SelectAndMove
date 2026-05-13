@@ -9,13 +9,21 @@ namespace Laminar.Avalonia.SelectAndMove;
 
 public class BackgroundGridLines : Control
 {
-    public static readonly AttachedProperty<double> MajorLineSeparationProperty = AvaloniaProperty.RegisterAttached<BackgroundGridLines, double>(nameof(MajorLineSeparation), typeof(BackgroundGridLines), 200);
+    public static readonly AttachedProperty<double> MajorLineSeparationProperty = AvaloniaProperty.RegisterAttached<BackgroundGridLines, Visual, double>(nameof(MajorLineSeparation), 200);
+    public static double GetMajorLineSeparation(Visual visual) => visual.GetValue(MajorLineSeparationProperty);
+    public static void SetMajorLineSeparation(Visual visual, double value) => visual.SetValue(MajorLineSeparationProperty, value);
+    
+    public static readonly AttachedProperty<int> MinorLineCountProperty = AvaloniaProperty.RegisterAttached<BackgroundGridLines, Visual, int>(nameof(MinorLineCount), 4);
+    public static int GetMinorLineCount(Visual visual) => visual.GetValue(MinorLineCountProperty);
+    public static void SetMinorLineCount(Visual visual, int value) => visual.SetValue(MinorLineCountProperty, value);
 
-    public static readonly AttachedProperty<int> MinorLineCountProperty = AvaloniaProperty.RegisterAttached<BackgroundGridLines, int>(nameof(MinorLineCount), typeof(BackgroundGridLines), 4);
-
-    public static readonly AttachedProperty<double> MajorLineThicknessProperty = AvaloniaProperty.RegisterAttached<BackgroundGridLines, double>(nameof(MajorLineThickness), typeof(BackgroundGridLines), 5);
-
-    public static readonly AttachedProperty<IBrush> LineBrushProperty = AvaloniaProperty.RegisterAttached<BackgroundGridLines, IBrush>(nameof(LineBrush), typeof(BackgroundGridLines), new SolidColorBrush(new Color(255, 5, 5, 5)));
+    public static readonly AttachedProperty<double> MajorLineThicknessProperty = AvaloniaProperty.RegisterAttached<BackgroundGridLines, Visual, double>(nameof(MajorLineThickness), 5);
+    public static double GetMajorLineThickness(Visual visual) => visual.GetValue(MajorLineThicknessProperty);
+    public static void SetMajorLineThickness(Visual visual, double value) => visual.SetValue(MajorLineThicknessProperty, value);
+    
+    public static readonly AttachedProperty<IBrush> LineBrushProperty = AvaloniaProperty.RegisterAttached<BackgroundGridLines, Visual, IBrush>(nameof(LineBrush), new SolidColorBrush(new Color(255, 5, 5, 5)));
+    public static IBrush GetLineBrush(Visual visual) => visual.GetValue(LineBrushProperty);
+    public static void SetLineBrush(Visual visual, IBrush value) => visual.SetValue(LineBrushProperty, value);
 
     public static readonly DirectProperty<BackgroundGridLines, Rect> SnapGridProperty = AvaloniaProperty.RegisterDirect<BackgroundGridLines, Rect>(nameof(SnapGrid), o => o.SnapGrid);
 

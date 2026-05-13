@@ -135,11 +135,11 @@
 		<sam:SelectAndMove 
 			Name="ExampleSelectAndMove">
 			
-			<sam:SelectAndMove.SelectionBox>
+			<sam:BoxSelectGesture.SelectionBox>
 				<Rectangle 
 					Stroke="DarkGray"
 					StrokeThickness="3"/>
-			</sam:SelectAndMove.SelectionBox>
+			</sam:BoxSelectGesture.SelectionBox>
 			
 			<TextBlock
 				Name="Unselectable"

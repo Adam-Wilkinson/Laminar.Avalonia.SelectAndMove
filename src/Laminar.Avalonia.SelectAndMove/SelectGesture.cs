@@ -8,8 +8,9 @@ namespace Laminar.Avalonia.SelectAndMove;
 
 public class SelectGesture : GestureRecognizer
 {
-    public static readonly StyledProperty<KeyModifiers> SelectManyKeyModifiersProperty = 
-        AvaloniaProperty.Register<SelectGesture, KeyModifiers>(nameof(SelectManyKeyModifiers), KeyModifiers.Shift);
+    public static readonly AttachedProperty<KeyModifiers> SelectManyKeyModifiersProperty = AvaloniaProperty.RegisterAttached<SelectGesture, StyledElement, KeyModifiers>(nameof(SelectManyKeyModifiers), KeyModifiers.Shift);
+    public static KeyModifiers GetSelectManyKeyModifiers(StyledElement target) => target.GetValue(SelectManyKeyModifiersProperty);
+    public static void SetSelectManyKeyModifiers(StyledElement target, KeyModifiers value) => target.SetValue(SelectManyKeyModifiersProperty, value);
     
     private int _maxZIndex = 1;
     

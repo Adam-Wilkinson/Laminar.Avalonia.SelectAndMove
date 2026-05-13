@@ -12,12 +12,12 @@ public class MoveSelectionGesture : GestureRecognizer
 {
     public static readonly StyledProperty<Rect> SnapGridProperty = AvaloniaProperty.RegisterAttached<MoveSelectionGesture, Rect>(nameof(SnapGrid), typeof(MoveSelectionGesture), new Rect(0, 0, 50, 50));
 
-    public static readonly StyledProperty<SnapMode> SnapModeProperty = AvaloniaProperty.RegisterAttached<MoveSelectionGesture, SnapMode>(nameof(SnapMode), typeof(MoveSelectionGesture));
-
-    public static readonly AttachedProperty<bool> IsMovableProperty = AvaloniaProperty.RegisterAttached<SelectAndMove, AvaloniaObject, bool>("IsMovable", true);
+    public static readonly AttachedProperty<SnapMode> SnapModeProperty = AvaloniaProperty.RegisterAttached<MoveSelectionGesture, StyledElement, SnapMode>(nameof(SnapMode));
+    public static SnapMode GetSnapMode(StyledElement element) => element.GetValue(SnapModeProperty);
+    public static void SetSnapMode(StyledElement element, SnapMode value) => element.SetValue(SnapModeProperty, value);
     
+    public static readonly AttachedProperty<bool> IsMovableProperty = AvaloniaProperty.RegisterAttached<SelectAndMove, AvaloniaObject, bool>("IsMovable", true);
     public static bool GetIsMovable(AvaloniaObject element) => element.GetValue(IsMovableProperty);
-
     public static void SetIsMovable(AvaloniaObject element, bool value) => element.SetValue(IsMovableProperty, value);
     
     private readonly List<(InputElement control, Point originalTopLeft)> _moving = [];

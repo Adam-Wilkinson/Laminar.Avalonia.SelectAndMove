@@ -19,9 +19,9 @@
                         <sam:MoveSelectionGesture SnapGrid="{TemplateBinding SnapGrid}"
                                                   SnapMode="{TemplateBinding (sam:MoveSelectionGesture.SnapMode)}"/>
                         
-                        <sam:BoxSelectGesture SelectManyKeyModifiers="{TemplateBinding (sam:BoxSelectGesture.SelectManyKeyModifiers)}"
-                                            SelectionBox="{TemplateBinding SelectionBox}"
-                                            BoxSelectMouseButton="{TemplateBinding (sam:BoxSelectGesture.BoxSelectMouseButton)}"/>
+                        <sam:BoxSelectGesture sam:SelectGesture.SelectManyKeyModifiers="{TemplateBinding (sam:SelectGesture.SelectManyKeyModifiers)}"
+                                              SelectionBox="{TemplateBinding (sam:BoxSelectGesture.SelectionBox)}"
+                                              BoxSelectMouseButton="{TemplateBinding (sam:BoxSelectGesture.BoxSelectMouseButton)}"/>
                         
                     </Border.GestureRecognizers>
                     <Panel Name="PART_TransformRoot">

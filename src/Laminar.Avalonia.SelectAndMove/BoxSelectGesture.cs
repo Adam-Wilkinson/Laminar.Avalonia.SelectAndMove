@@ -10,14 +10,13 @@ namespace Laminar.Avalonia.SelectAndMove;
 
 public class BoxSelectGesture : GestureRecognizer
 {
-    public static readonly StyledProperty<KeyModifiers> SelectManyKeyModifiersProperty =
-        SelectGesture.SelectManyKeyModifiersProperty.AddOwner<SelectGesture>();
-
-    public static readonly StyledProperty<Rectangle> SelectionBoxProperty =
-        AvaloniaProperty.Register<BoxSelectGesture, Rectangle>(nameof(SelectionBox), new Rectangle { Stroke = Brushes.Red, StrokeThickness = 2 });
-
-    public static readonly StyledProperty<MouseButton> BoxSelectMouseButtonProperty =
-        AvaloniaProperty.Register<BoxSelectGesture, MouseButton>(nameof(BoxSelectMouseButton), MouseButton.Left);
+    public static readonly AttachedProperty<Rectangle> SelectionBoxProperty = AvaloniaProperty.RegisterAttached<BoxSelectGesture, Visual, Rectangle>(nameof(SelectionBox), new Rectangle { Stroke = Brushes.Red, StrokeThickness = 2 });
+    public static Rectangle GetSelectionBox(Visual visual) => visual.GetValue(SelectionBoxProperty);
+    public static void SetSelectionBox(Visual visual, Rectangle value) => visual.SetValue(SelectionBoxProperty, value);
+    
+    public static readonly AttachedProperty<MouseButton> BoxSelectMouseButtonProperty = AvaloniaProperty.RegisterAttached<BoxSelectGesture, Visual, MouseButton>(nameof(BoxSelectMouseButton), MouseButton.Left);
+    public static MouseButton GetBoxSelectMouseButton(Visual visual) => visual.GetValue(BoxSelectMouseButtonProperty);
+    public static void SetBoxSelectMouseButton(Visual visual, MouseButton value) => visual.SetValue(BoxSelectMouseButtonProperty, value);
     
     private readonly Canvas _drawingCanvas = new()
     {
@@ -40,8 +39,8 @@ public class BoxSelectGesture : GestureRecognizer
 
     public KeyModifiers SelectManyKeyModifiers
     {
-        get => GetValue(SelectManyKeyModifiersProperty);
-        set => SetValue(SelectManyKeyModifiersProperty, value);
+        get => GetValue(SelectGesture.SelectManyKeyModifiersProperty);
+        set => SetValue(SelectGesture.SelectManyKeyModifiersProperty, value);
     }
     
     public Rectangle SelectionBox

@@ -27,8 +27,6 @@ public class SelectAndMove : ItemsControl
 {
     private static readonly FuncTemplate<Panel?> DefaultPanel = new(() => new Canvas());
     
-    public static readonly StyledProperty<Rectangle> SelectionBoxProperty = BoxSelectGesture.SelectionBoxProperty.AddOwner<SelectAndMove>();
-
     public static readonly StyledProperty<MouseButton> PanMouseButtonProperty = AvaloniaProperty.Register<SelectAndMove, MouseButton>(nameof(PanMouseButton), MouseButton.Middle);
 
     public static readonly StyledProperty<IReadOnlyList<object>> SelectionProperty = AvaloniaProperty.Register<SelectAndMove, IReadOnlyList<object>>(nameof(Selection), defaultBindingMode: BindingMode.TwoWay);
@@ -81,15 +79,6 @@ public class SelectAndMove : ItemsControl
     {
         get => GetValue(SnapGridProperty);
         set => SetValue(SnapGridProperty, value);
-    }
-
-    /// <summary>
-    /// The rectangle that is used when applying a box selection. Use this to define the stroke color, fill etc.
-    /// </summary>
-    public Rectangle SelectionBox
-    {
-        get => GetValue(SelectionBoxProperty);
-        set => SetValue(SelectionBoxProperty, value);
     }
 
     /// <summary>

@@ -18,6 +18,10 @@ public class BoxSelectGesture : GestureRecognizer
     public static readonly AttachedProperty<MouseButton> BoxSelectMouseButtonProperty = AvaloniaProperty.RegisterAttached<BoxSelectGesture, Visual, MouseButton>(nameof(BoxSelectMouseButton), MouseButton.Left);
     public static MouseButton GetBoxSelectMouseButton(Visual visual) => visual.GetValue(BoxSelectMouseButtonProperty);
     public static void SetBoxSelectMouseButton(Visual visual, MouseButton value) => visual.SetValue(BoxSelectMouseButtonProperty, value);
+
+    public static readonly AttachedProperty<Shape?> IntersectionShapeProperty = AvaloniaProperty.RegisterAttached<BoxSelectGesture, Visual, Shape?>("IntersectionShape");
+    public static Shape? GetIntersectionShape(Visual visual) => visual.GetValue(IntersectionShapeProperty);
+    public static void SetIntersectionShape(Visual visual, Shape? value) => visual.SetValue(IntersectionShapeProperty, value);
     
     private readonly Canvas _drawingCanvas = new()
     {
@@ -146,23 +150,39 @@ public class BoxSelectGesture : GestureRecognizer
             return customHitResolver.IntersectsWithRectangle(rectInLocal);
         }
 
-        if (ResolveControlGeometry(control) is { } shapeGeometry )
+        if (FindIntersectionShape(control) is { DefiningGeometry: { } geometry })
         {
-            Geometry intersection = Geometry.Combine(shapeGeometry, new RectangleGeometry(rectInLocal), GeometryCombineMode.Intersect);
+            Geometry intersection = Geometry.Combine(geometry, new RectangleGeometry(rectInLocal), GeometryCombineMode.Intersect);
             return intersection.Bounds.Width > 0 || intersection.Bounds.Height > 0;
         }
 
         return new Rect(control.Bounds.Size).Intersects(rectInLocal);
     }
 
-    private Geometry? ResolveControlGeometry(InputElement element) => element switch
+    private Shape? FindIntersectionShape(InputElement? element)
     {
-        Shape shape => shape.DefiningGeometry,
-        ContentPresenter { Child: { } contentPresenterChild } => ResolveControlGeometry(contentPresenterChild),
-        ContentControl { Content: InputElement contentControlChild } => ResolveControlGeometry(contentControlChild),
-        Decorator { IsHitTestVisible: false, Child: { } decorated } => ResolveControlGeometry(decorated),
-        _ => null,
-    };
+        while (element is not null)
+        {
+            if (GetIntersectionShape(element) is { } userDefinedIntersection)
+            {
+                return userDefinedIntersection;
+            }
+
+            if (element is Shape shapeElement)
+            {
+                return shapeElement;
+            }
+
+            element = element switch
+            {
+                ContentPresenter contentPresenter => contentPresenter.Child,
+                ContentControl contentControl => contentControl.Content as InputElement,
+                Decorator { IsHitTestVisible: false } decorator => decorator.Child,
+                _ => null,
+            };
+        }
+        return null;
+    }
 
     private void SelectionBoxChanged(AvaloniaPropertyChangedEventArgs args)
     {

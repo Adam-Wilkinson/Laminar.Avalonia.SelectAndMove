@@ -68,7 +68,7 @@ public class ZIndexLayerManger
         }
         
         int layerIncrement = GetZIndexLayerIncrement(visualParent);
-        layerManager.GetLayer(zIndexLayer, layerIncrement).BringToFront(visual);
+        layerManager.GetLayer(zIndexLayer, layerIncrement).BringToFrontOfLayer(visual);
     }
 
     private void RemoveElementFromLayer(Visual visual, int layer)
@@ -138,9 +138,10 @@ public class ZIndexLayerManger
             {
                 child.ZIndex += delta;
             }
+            _currentMaxValue += delta;
         }
 
-        public void BringToFront(Visual visual)
+        public void BringToFrontOfLayer(Visual visual)
         {
             if (visual.ZIndex == _currentMaxValue) return;
             visual.ZIndex = ++_currentMaxValue;

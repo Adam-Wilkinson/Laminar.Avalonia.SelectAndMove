@@ -1,5 +1,6 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Shapes;
 using Avalonia.Input;
@@ -145,7 +146,7 @@ public class BoxSelectGesture : GestureRecognizer
             return customHitResolver.IntersectsWithRectangle(rectInLocal);
         }
 
-        if (control is Shape { DefiningGeometry: { } shapeGeometry })
+        if (ResolveControlGeometry(control) is { } shapeGeometry )
         {
             Geometry intersection = Geometry.Combine(shapeGeometry, new RectangleGeometry(rectInLocal), GeometryCombineMode.Intersect);
             return intersection.Bounds.Width > 0 || intersection.Bounds.Height > 0;
@@ -153,6 +154,15 @@ public class BoxSelectGesture : GestureRecognizer
 
         return new Rect(control.Bounds.Size).Intersects(rectInLocal);
     }
+
+    private Geometry? ResolveControlGeometry(InputElement element) => element switch
+    {
+        Shape shape => shape.DefiningGeometry,
+        ContentPresenter { Child: { } contentPresenterChild } => ResolveControlGeometry(contentPresenterChild),
+        ContentControl { Content: InputElement contentControlChild } => ResolveControlGeometry(contentControlChild),
+        Decorator { IsHitTestVisible: false, Child: { } decorated } => ResolveControlGeometry(decorated),
+        _ => null,
+    };
 
     private void SelectionBoxChanged(AvaloniaPropertyChangedEventArgs args)
     {

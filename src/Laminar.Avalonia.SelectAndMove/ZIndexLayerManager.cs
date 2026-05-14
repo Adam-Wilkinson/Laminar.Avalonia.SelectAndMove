@@ -90,21 +90,23 @@ public class ZIndexLayerManger
             return layer;
         }
 
-        var newLayer = new ZIndexLayer(0, increment);
-        _layers[layerKey] = newLayer;
-        int indexOfNewLayer = _layers.IndexOfKey(layerKey);
-        if (indexOfNewLayer > 0)
+        _layers[layerKey] = new ZIndexLayer(0, 0);
+        RebuildLayerRanges(increment);
+        return _layers[layerKey];
+    }
+    
+    private void RebuildLayerRanges(int increment)
+    {
+        int currentBottom = 0;
+
+        foreach (var layer in _layers.Values)
         {
-            newLayer.RaiseRangeBy(_layers.Values[indexOfNewLayer - 1].TopOfRange + 1);
-        }
-        
-        for (int i = indexOfNewLayer + 1; i < _layers.Count; i++)
-        {
-            _layers.Values[i].RaiseRangeBy(increment);
+            layer.SetRange(currentBottom, currentBottom + increment);
+
+            currentBottom += increment + 1;
         }
 
-        _maxZIndex = Math.Max(_maxZIndex, _layers.Values[^1].TopOfRange);
-        return newLayer;
+        _maxZIndex = Math.Max(currentBottom, _maxZIndex);
     }
     
     private class ZIndexLayer(int bottomOfRange, int topOfRange)
@@ -120,9 +122,12 @@ public class ZIndexLayerManger
 
         public void AddVisual(Visual visual)
         {
-            _children.Add(visual);
+            if (!_children.Contains(visual))
+            {
+                _children.Add(visual);
+            }
             visual.ZIndex = ++_currentMaxValue;
-            QueueNormalize();
+            QueuePotentialNormalize();
         }
 
         public void RemoveVisual(Visual visual)
@@ -130,25 +135,30 @@ public class ZIndexLayerManger
             _children.Remove(visual);
         }
         
-        public void RaiseRangeBy(int delta)
+        public void SetRange(int bottom, int top)
         {
-            BottomOfRange += delta;
-            TopOfRange += delta;
+            int delta = bottom - BottomOfRange;
+
+            BottomOfRange = bottom;
+            TopOfRange = top;
+
             foreach (var child in _children)
             {
                 child.ZIndex += delta;
             }
+
             _currentMaxValue += delta;
+            QueuePotentialNormalize();
         }
 
         public void BringToFrontOfLayer(Visual visual)
         {
             if (visual.ZIndex == _currentMaxValue) return;
             visual.ZIndex = ++_currentMaxValue;
-            QueueNormalize();
+            QueuePotentialNormalize();
         }
 
-        private void QueueNormalize()
+        private void QueuePotentialNormalize()
         {
             if (_currentMaxValue >= TopOfRange)
             {

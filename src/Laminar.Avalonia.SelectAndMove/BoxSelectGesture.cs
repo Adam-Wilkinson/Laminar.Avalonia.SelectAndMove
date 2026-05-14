@@ -176,7 +176,7 @@ public class BoxSelectGesture : GestureRecognizer
             element = element switch
             {
                 ContentPresenter contentPresenter => contentPresenter.Child,
-                ContentControl contentControl => contentControl.Content as InputElement,
+                ContentControl contentControl => contentControl.Presenter,
                 Decorator { IsHitTestVisible: false } decorator => decorator.Child,
                 _ => null,
             };

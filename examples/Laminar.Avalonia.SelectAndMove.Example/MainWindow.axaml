@@ -141,6 +141,22 @@
 					StrokeThickness="3"/>
 			</sam:BoxSelectGesture.SelectionBox>
 			
+			<TextBlock Name="BackgroundOne"
+			           Canvas.Left="500"
+			           Canvas.Top="300"
+			           Background="Black"
+			           Padding="10"
+			           sam:ZIndexLayerManger.ZIndexLayer="-1"
+			           Text="A background element"/>
+			
+			<TextBlock Name="BackgroundTwo"
+			           Canvas.Left="500"
+			           Canvas.Top="200"
+			           Background="Black"
+			           Padding="10"
+			           sam:ZIndexLayerManger.ZIndexLayer="-1"
+			           Text="Another background element"/>
+			
 			<TextBlock
 				Name="Unselectable"
 				Canvas.Left="10"
@@ -208,7 +224,7 @@
 						Background="Maroon">
 				<TextBlock Padding="15">This control has a slider and a checkbox</TextBlock>
 				<Slider Minimum="0" Maximum="10" Margin="5"/>
-				<CheckBox IsChecked="{Binding $self.(sam:Selection.IsSelected)}" 
+				<CheckBox IsChecked="{Binding $self.(sam:Selection.IsSelected), Mode=OneWay}" 
 				          HorizontalAlignment="Center">Is Selected</CheckBox>
 			</StackPanel>
 		</sam:SelectAndMove>

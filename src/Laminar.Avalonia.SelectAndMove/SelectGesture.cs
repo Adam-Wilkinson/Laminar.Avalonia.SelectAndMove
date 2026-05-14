@@ -12,8 +12,6 @@ public class SelectGesture : GestureRecognizer
     public static KeyModifiers GetSelectManyKeyModifiers(StyledElement target) => target.GetValue(SelectManyKeyModifiersProperty);
     public static void SetSelectManyKeyModifiers(StyledElement target, KeyModifiers value) => target.SetValue(SelectManyKeyModifiersProperty, value);
     
-    private int _maxZIndex = 1;
-    
     public KeyModifiers SelectManyKeyModifiers
     {
         get => GetValue(SelectManyKeyModifiersProperty);
@@ -39,7 +37,7 @@ public class SelectGesture : GestureRecognizer
 
         if (clicked is not null)
         {
-            clicked.ZIndex = _maxZIndex++;
+            ZIndexLayerManger.BringToFront(clicked);
             Selection.SetIsSelected(clicked, true);
         }
     }

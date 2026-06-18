@@ -68,7 +68,6 @@ public class SelectAndMoveItem : ContentControl, ISelectable
                 this[!LeftProperty] = child[(!Canvas.LeftProperty).WithMode(BindingMode.TwoWay)];
                 this[!TopProperty] = child[(!Canvas.TopProperty).WithMode(BindingMode.TwoWay)];
                 this[!ZIndexLayerManger.ZIndexLayerProperty] = child[(!ZIndexLayerManger.ZIndexLayerProperty).WithMode(BindingMode.TwoWay)];
-                this[!ZIndexProperty] = child[(!ZIndexProperty).WithMode(BindingMode.TwoWay)];
             }));
     }
 

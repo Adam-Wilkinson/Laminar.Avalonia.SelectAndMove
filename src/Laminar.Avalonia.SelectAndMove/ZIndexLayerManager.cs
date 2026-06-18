@@ -1,5 +1,10 @@
+using System.Collections.Specialized;
 using System.Runtime.CompilerServices;
 using Avalonia;
+using Avalonia.Collections;
+using Avalonia.Layout;
+using Avalonia.LogicalTree;
+using Avalonia.Reactive;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 
@@ -7,9 +12,11 @@ namespace Laminar.Avalonia.SelectAndMove;
 
 public class ZIndexLayerManger
 {
-    public static readonly AttachedProperty<int?> ZIndexLayerProperty = AvaloniaProperty.RegisterAttached<ZIndexLayerManger, Visual, int?>("ZIndexLayer");
-    public static int? GetZIndexLayer(Visual target) => target.GetValue(ZIndexLayerProperty);
-    public static void SetZIndexLayer(Visual target, int? value) => target.SetValue(ZIndexLayerProperty, value);
+    private static readonly HashSet<Visual> MonitoredVisualParents = [];
+    
+    public static readonly AttachedProperty<int> ZIndexLayerProperty = AvaloniaProperty.RegisterAttached<ZIndexLayerManger, Visual, int>("ZIndexLayer");
+    public static int GetZIndexLayer(Visual target) => target.GetValue(ZIndexLayerProperty);
+    public static void SetZIndexLayer(Visual target, int value) => target.SetValue(ZIndexLayerProperty, value);
     
 
     public static readonly AttachedProperty<int> ZIndexLayerIncrementProperty = AvaloniaProperty.RegisterAttached<ZIndexLayerManger, Visual, int>("ZIndexLayerIncrement", defaultValue: 100);
@@ -20,7 +27,6 @@ public class ZIndexLayerManger
     private static readonly ConditionalWeakTable<Visual, VisualTreeMonitor> VisualTreeMonitors = [];
     
     private readonly SortedList<int, ZIndexLayer> _layers = [];
-    private int _maxZIndex = 0;
     
     static ZIndexLayerManger()
     {
@@ -31,6 +37,11 @@ public class ZIndexLayerManger
     {
         var visualParent = visual.GetVisualParent();
 
+        if (visualParent is not null && !MonitoredVisualParents.Contains(visualParent))
+        {
+            MonitorVisualParent(visualParent);
+        }
+        
         if (args.OldValue is int oldValue)
         {
             if (visualParent is not null)
@@ -54,6 +65,34 @@ public class ZIndexLayerManger
             VisualTreeMonitors.GetValue(visual, v => new VisualTreeMonitor(v));
         }
     }
+
+    private static void MonitorVisualParent(Visual visual)
+    {
+        MonitoredVisualParents.Add(visual);
+        var manager = GetLayerManager(visual);
+        foreach (var child in visual.GetVisualChildren())
+        {
+            var childLayer = GetZIndexLayer(child);
+            manager.AddElementToLayer(child, childLayer);
+        }
+
+        if (visual is ILogical logical)
+        {
+            logical.LogicalChildren.GetWeakCollectionChangedObservable().Subscribe(
+                new AnonymousObserver<NotifyCollectionChangedEventArgs>(x =>
+                {
+                    foreach (var newItem in x.NewItems?.OfType<Visual>() ?? [])
+                    {
+                        manager.AddElementToLayer(newItem, GetZIndexLayer(newItem));
+                    }
+
+                    foreach (var oldItem in x.OldItems?.OfType<Visual>() ?? [])
+                    {
+                        manager.RemoveElementFromLayer(oldItem, GetZIndexLayer(oldItem));
+                    }
+                }));
+        }
+    }
     
     private static ZIndexLayerManger GetLayerManager(Visual visualParent) => AllManagers.GetValue(visualParent, _ => new ZIndexLayerManger());
 
@@ -61,14 +100,8 @@ public class ZIndexLayerManger
     {
         if (visual.GetVisualParent() is not { } visualParent) return;
         ZIndexLayerManger layerManager = GetLayerManager(visualParent);
-        if (GetZIndexLayer(visual) is not { } zIndexLayer)
-        {
-            visual.ZIndex = ++layerManager._maxZIndex;
-            return;
-        }
-        
         int layerIncrement = GetZIndexLayerIncrement(visualParent);
-        layerManager.GetLayer(zIndexLayer, layerIncrement).BringToFrontOfLayer(visual);
+        layerManager.GetLayer(GetZIndexLayer(visual), layerIncrement).BringToFrontOfLayer(visual);
     }
 
     private void RemoveElementFromLayer(Visual visual, int layer)
@@ -105,8 +138,6 @@ public class ZIndexLayerManger
 
             currentBottom += increment + 1;
         }
-
-        _maxZIndex = Math.Max(currentBottom, _maxZIndex);
     }
     
     private class ZIndexLayer(int bottomOfRange, int topOfRange)
@@ -118,8 +149,7 @@ public class ZIndexLayerManger
         public int BottomOfRange { get; private set; } = bottomOfRange;
 
         public int TopOfRange { get; private set; } = topOfRange;
-
-
+        
         public void AddVisual(Visual visual)
         {
             if (!_children.Contains(visual))
@@ -204,14 +234,14 @@ public class ZIndexLayerManger
 
         private void AttachedToVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
         {
-            if (e.AttachmentPoint is not { } visualParent || GetZIndexLayer(_visual) is not { } layer) return;
-            GetLayerManager(visualParent).AddElementToLayer(_visual, layer);
+            if (e.AttachmentPoint is not { } visualParent) return;
+            GetLayerManager(visualParent).AddElementToLayer(_visual, GetZIndexLayer(_visual));
         }
 
         private void DetachedFromVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
         {
-            if (e.AttachmentPoint is not { } visualParent || GetZIndexLayer(_visual) is not { } layer) return;
-            GetLayerManager(visualParent).RemoveElementFromLayer(_visual, layer);
+            if (e.AttachmentPoint is not { } visualParent) return;
+            GetLayerManager(visualParent).RemoveElementFromLayer(_visual, GetZIndexLayer(_visual));
         }
 
         public void Dispose()

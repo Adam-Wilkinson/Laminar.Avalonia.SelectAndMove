@@ -23,7 +23,7 @@ public class MoveSelectionGesture : GestureRecognizer
     private readonly List<(InputElement control, Point originalTopLeft)> _moving = [];
 
     private Point _originalClickPoint = new(0, 0);
-    private IPointer? _capturedPointer;
+    private IPointer? _clickedPointer;
     private Point? _snapPoint;
 
     public Rect SnapGrid
@@ -70,8 +70,7 @@ public class MoveSelectionGesture : GestureRecognizer
             return;
         }
 
-        Capture(e.Pointer);
-        _capturedPointer = e.Pointer;
+        _clickedPointer = e.Pointer;
         _moving.Clear();
 
         var originalBoundsOfSelection = new Rect(0, 0, 0, 0);
@@ -100,10 +99,12 @@ public class MoveSelectionGesture : GestureRecognizer
 
     protected override void PointerMoved(PointerEventArgs e)
     {
-        if (Target is not Visual visualTarget || e.Pointer != _capturedPointer)
+        if (Target is not Visual visualTarget || _clickedPointer != e.Pointer)
         {
             return;
         }
+
+        Capture(e.Pointer);
 
         
         Point targetDelta = e.GetPosition(visualTarget) - _originalClickPoint;
@@ -156,8 +157,8 @@ public class MoveSelectionGesture : GestureRecognizer
 
     private void EndGesture()
     {
-        _capturedPointer?.Capture(null);
-        _capturedPointer = null;
+        _clickedPointer?.Capture(null);
+        _clickedPointer = null;
     }
 
     private static Point? GetSnapPoint(Rect boundsRect, SnapMode snapMode) => snapMode switch

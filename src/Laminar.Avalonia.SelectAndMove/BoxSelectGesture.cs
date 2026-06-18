@@ -44,8 +44,8 @@ public class BoxSelectGesture : GestureRecognizer
 
     public KeyModifiers SelectManyKeyModifiers
     {
-        get => GetValue(SelectGesture.SelectManyKeyModifiersProperty);
-        set => SetValue(SelectGesture.SelectManyKeyModifiersProperty, value);
+        get => GetValue(SelectAndMove.SelectManyKeyModifiersProperty);
+        set => SetValue(SelectAndMove.SelectManyKeyModifiersProperty, value);
     }
     
     public Rectangle SelectionBox
@@ -69,9 +69,6 @@ public class BoxSelectGesture : GestureRecognizer
         {
             return;
         }
-
-        Capture(e.Pointer);
-        _capturedPointer = e.Pointer;
         
         Selection.SetIsSelectable(SelectionBox, false);
         _originalClick = e;
@@ -79,9 +76,15 @@ public class BoxSelectGesture : GestureRecognizer
 
     protected override void PointerMoved(PointerEventArgs e)
     {
-        if (Target is not InputElement target || e.Pointer != _capturedPointer || _originalClick is null)
+        if (Target is not InputElement target || _originalClick is null)
         {
             return;
+        }
+
+        if (_capturedPointer is null)
+        {
+            Capture(e.Pointer);
+            _capturedPointer = e.Pointer;            
         }
 
         if (!_selectionBoxAdded && OverlayLayer.GetOverlayLayer(target) is { } overlayLayer)

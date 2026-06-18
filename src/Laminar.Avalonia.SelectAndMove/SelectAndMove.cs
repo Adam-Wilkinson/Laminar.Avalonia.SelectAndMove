@@ -3,12 +3,13 @@ using Avalonia;
 using Avalonia.Collections;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
-using Avalonia.Controls.Shapes;
 using Avalonia.Controls.Templates;
 using Avalonia.Data;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml.Styling;
 using Avalonia.Media;
+using Avalonia.VisualTree;
 
 namespace Laminar.Avalonia.SelectAndMove;
 
@@ -29,6 +30,10 @@ public class SelectAndMove : ItemsControl
     
     public static readonly StyledProperty<MouseButton> PanMouseButtonProperty = AvaloniaProperty.Register<SelectAndMove, MouseButton>(nameof(PanMouseButton), MouseButton.Middle);
 
+    public static readonly AttachedProperty<KeyModifiers> SelectManyKeyModifiersProperty = AvaloniaProperty.RegisterAttached<SelectAndMove, AvaloniaObject, KeyModifiers>(nameof(SelectManyKeyModifiers), KeyModifiers.Shift);
+    public static KeyModifiers GetSelectManyKeyModifiers(AvaloniaObject element) => element.GetValue(SelectManyKeyModifiersProperty);
+    public static void SetSelectManyKeyModifiers(AvaloniaObject element, KeyModifiers modifiers) => element.SetValue(SelectManyKeyModifiersProperty, modifiers);
+    
     public static readonly StyledProperty<IReadOnlyList<object>> SelectionProperty = AvaloniaProperty.Register<SelectAndMove, IReadOnlyList<object>>(nameof(Selection), defaultBindingMode: BindingMode.TwoWay);
     
     public static readonly StyledProperty<double> ZoomSpeedProperty = AvaloniaProperty.Register<SelectAndMove, double>(nameof(ZoomSpeed), 1.0);
@@ -43,15 +48,15 @@ public class SelectAndMove : ItemsControl
     
     public static readonly StyledProperty<Rect> SnapGridProperty = MoveSelectionGesture.SnapGridProperty.AddOwner<SelectAndMove>();
 
-    public static readonly DirectProperty<SelectAndMove, Visual> TransformRootProperty = AvaloniaProperty.RegisterDirect<SelectAndMove, Visual>("TransformRoot", sam => sam._transformRoot ?? sam);
-
-    public Visual TransformRoot => _transformRoot ?? this;
+    public static readonly DirectProperty<SelectAndMove, Visual> TransformRootProperty = AvaloniaProperty.RegisterDirect<SelectAndMove, Visual>(nameof(TransformRoot), sam => sam._transformRoot ?? sam);
     
     private PointerEventArgs? _previousPanArgs;
     private bool _blockRenderRecalculation;
     private bool _selectionChanging;
     private Visual? _transformRoot;
-    
+    private List<InputElement> _clickedElements = [];
+    private bool _lastClickOnSelectedElement;
+
     static SelectAndMove()
     {
         ViewZoomProperty.Changed.AddClassHandler<SelectAndMove>((sam, _) => sam.RecalculateRenderTransform());
@@ -71,6 +76,8 @@ public class SelectAndMove : ItemsControl
         };
         Application.Current?.Resources.MergedDictionaries.Add(selectAndMoveTheme);
     }
+    
+    public Visual TransformRoot => _transformRoot ?? this;
 
     /// <summary>
     /// Defines the snap grid as tessellations of the given rectangle, interpreted in transformed coordinates 
@@ -146,50 +153,17 @@ public class SelectAndMove : ItemsControl
         set => SetValue(ResizeBehaviorProperty, value);
     }
 
+    /// <summary>
+    /// A set of key modifiers that, when satisfied, indicates not to clear selection when a new item is selected
+    /// </summary>
+    public KeyModifiers SelectManyKeyModifiers
+    {
+        get => GetValue(SelectManyKeyModifiersProperty);
+        set => SetValue(SelectManyKeyModifiersProperty, value);
+    }
+
     public Matrix ComputeCurrentTransform() => Matrix.CreateTranslation(ViewTranslateX, ViewTranslateY) *
                                                Matrix.CreateScale(ViewZoom, ViewZoom);
-    
-    protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
-    {
-        base.OnApplyTemplate(e);
-        _transformRoot = e.NameScope.Find<Visual>("PART_TransformRoot");
-        RaisePropertyChanged(TransformRootProperty, this, _transformRoot!);
-    }
-
-    protected override void PrepareContainerForItemOverride(Control container, object? item, int index)
-    {
-        base.PrepareContainerForItemOverride(container, item, index);
-        container.SetValue(Avalonia.SelectAndMove.Selection.IsSelectableProperty, true, BindingPriority.Style);
-    }
-
-    protected override void OnPointerWheelChanged(PointerWheelEventArgs e)
-    {
-        Point cursorBefore = e.GetPosition(_transformRoot);
-        ViewZoom *= Math.Exp(ZoomSpeed * e.Delta.Y / 5);
-        Point positionDelta = e.GetPosition(_transformRoot) - cursorBefore;
-        using var _ = new ChangeTransformScope(this);
-        ViewTranslateX += positionDelta.X;
-        ViewTranslateY +=  positionDelta.Y;
-    }
-
-    protected override void OnPointerMoved(PointerEventArgs e)
-    {
-        if (!ButtonIsPressed(e.Properties, PanMouseButton))
-        {
-            _previousPanArgs = null;
-            return;
-        }
-
-        if (_previousPanArgs is not null)
-        {
-            using var _ = new ChangeTransformScope(this);
-            Point delta = e.GetPosition(_transformRoot) - _previousPanArgs.GetPosition(_transformRoot);
-            ViewTranslateX += delta.X;
-            ViewTranslateY += delta.Y;
-        }
-
-        _previousPanArgs = e;
-    }
 
     public void ResetView()
     {
@@ -226,6 +200,104 @@ public class SelectAndMove : ItemsControl
         ViewTranslateX = -topLeft.X;
         ViewTranslateY = -topLeft.Y;
         ViewZoom = zoomAmount;
+    }
+
+    internal void UpdateSelectionFromEvent(RoutedEventArgs args)
+    {
+        if (args is PointerPressedEventArgs pointerPressedEventArgs)
+        {
+            if (pointerPressedEventArgs.Handled || !pointerPressedEventArgs.Properties.IsLeftButtonPressed) return;
+
+            _lastClickOnSelectedElement = false;
+            _clickedElements = GetSelectableChildAtPointerPress(pointerPressedEventArgs)
+                .Reverse()
+                .OrderBy(x => x.ZIndex)
+                .ToList();
+
+            if (_clickedElements.Count == 0)
+            {
+                Laminar.Avalonia.SelectAndMove.Selection.ClearSiblingSelection(this);
+                return;
+            }
+        
+            if (Laminar.Avalonia.SelectAndMove.Selection.GetIsSelected(_clickedElements[^1]))
+            {
+                _lastClickOnSelectedElement = true;
+                return;
+            }
+
+            if (pointerPressedEventArgs.KeyModifiers != SelectManyKeyModifiers)
+            {
+                Laminar.Avalonia.SelectAndMove.Selection.ClearSiblingSelection(this);
+            }
+
+            if (_clickedElements.Count > 0)
+            {
+                ZIndexLayerManger.BringToFront(_clickedElements[^1]);
+                Laminar.Avalonia.SelectAndMove.Selection.SetIsSelected(_clickedElements[^1], true);
+            }
+        }
+        else if (args is PointerReleasedEventArgs)
+        {
+            if (_lastClickOnSelectedElement && _clickedElements.Count > 1)
+            {
+                Laminar.Avalonia.SelectAndMove.Selection.SetIsSelected(_clickedElements[^1], false);
+                Laminar.Avalonia.SelectAndMove.Selection.SetIsSelected(_clickedElements[0], true);
+                ZIndexLayerManger.BringToFront(_clickedElements[0]);
+            }
+        }
+    }
+    
+    protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
+    {
+        base.OnApplyTemplate(e);
+        _transformRoot = e.NameScope.Find<Visual>("PART_TransformRoot");
+        RaisePropertyChanged(TransformRootProperty, this, _transformRoot!);
+    }
+
+    protected override void OnPointerWheelChanged(PointerWheelEventArgs e)
+    {
+        Point cursorBefore = e.GetPosition(_transformRoot);
+        ViewZoom *= Math.Exp(ZoomSpeed * e.Delta.Y / 5);
+        Point positionDelta = e.GetPosition(_transformRoot) - cursorBefore;
+        using var _ = new ChangeTransformScope(this);
+        ViewTranslateX += positionDelta.X;
+        ViewTranslateY +=  positionDelta.Y;
+    }
+
+    protected override void OnPointerMoved(PointerEventArgs e)
+    {
+        if (!ButtonIsPressed(e.Properties, PanMouseButton))
+        {
+            _previousPanArgs = null;
+            return;
+        }
+
+        if (_previousPanArgs is not null)
+        {
+            using var _ = new ChangeTransformScope(this);
+            Point delta = e.GetPosition(_transformRoot) - _previousPanArgs.GetPosition(_transformRoot);
+            ViewTranslateX += delta.X;
+            ViewTranslateY += delta.Y;
+        }
+
+        _previousPanArgs = e;
+    }
+    
+    protected override bool NeedsContainerOverride(object? item, int index, out object? recycleKey)
+    {
+        return NeedsContainer<TreeViewItem>(item, out recycleKey);
+    }
+    
+    protected override Control CreateContainerForItemOverride(object? item, int index, object? recycleKey)
+    {
+        return new SelectAndMoveItem();
+    }
+
+    protected override void PrepareContainerForItemOverride(Control container, object? item, int index)
+    {
+        base.PrepareContainerForItemOverride(container, item, index);
+        container.SetValue(Avalonia.SelectAndMove.Selection.IsSelectableProperty, true, BindingPriority.Style);
     }
     
     private void BoundsChanged(AvaloniaPropertyChangedEventArgs args)
@@ -301,6 +373,27 @@ public class SelectAndMove : ItemsControl
         _selectionChanging = false;
     }
 
+    private IEnumerable<InputElement> GetSelectableChildAtPointerPress(PointerPressedEventArgs point)
+    {
+        if (TopLevel.GetTopLevel(this) is not { } topLevel)
+        {
+            yield break;
+        }
+        
+        foreach (var child in topLevel.GetVisualsAt(point.GetPosition(topLevel))
+                     .Select(visualAtCursor => visualAtCursor
+                         .GetSelfAndVisualAncestors()
+                         .FirstOrDefault(ancestor => 
+                             ancestor is InputElement element && Laminar.Avalonia.SelectAndMove.Selection.GetIsSelectable(element)))
+                     .OfType<InputElement>())
+        {
+            if (child.InputHitTest(point.GetPosition(child)) is not null)
+            {
+                yield return child;
+            }
+        }
+    }
+    
     private readonly struct ChangeTransformScope : IDisposable
     {
         private readonly SelectAndMove _target;

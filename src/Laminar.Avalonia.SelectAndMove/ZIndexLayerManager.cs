@@ -166,7 +166,7 @@ public class ZIndexLayerManger
                 return;
             }
 
-            if (_currentMaxValue >= TopOfRange * 0.9 && !_normalizeQueued)
+            if (_currentMaxValue >= TopOfRange * 0.8 && !_normalizeQueued)
             {
                 _normalizeQueued = true;
                 Dispatcher.UIThread.Post(Normalize, DispatcherPriority.ApplicationIdle);

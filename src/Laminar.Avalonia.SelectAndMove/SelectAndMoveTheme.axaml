@@ -14,15 +14,12 @@
                         ClipToBounds="{TemplateBinding ClipToBounds}"
                         CornerRadius="{TemplateBinding CornerRadius}">
                     <Border.GestureRecognizers>
-                        <sam:SelectGesture SelectManyKeyModifiers="{TemplateBinding (sam:SelectGesture.SelectManyKeyModifiers)}"/>
-                        
                         <sam:MoveSelectionGesture SnapGrid="{TemplateBinding SnapGrid}"
                                                   SnapMode="{TemplateBinding (sam:MoveSelectionGesture.SnapMode)}"/>
                         
-                        <sam:BoxSelectGesture sam:SelectGesture.SelectManyKeyModifiers="{TemplateBinding (sam:SelectGesture.SelectManyKeyModifiers)}"
+                        <sam:BoxSelectGesture sam:SelectAndMove.SelectManyKeyModifiers="{TemplateBinding (sam:SelectAndMove.SelectManyKeyModifiers)}"
                                               SelectionBox="{TemplateBinding (sam:BoxSelectGesture.SelectionBox)}"
                                               BoxSelectMouseButton="{TemplateBinding (sam:BoxSelectGesture.BoxSelectMouseButton)}"/>
-                        
                     </Border.GestureRecognizers>
                     <Panel Name="PART_TransformRoot">
                         <sam:BackgroundGridLines Name="PART_GridLines" 

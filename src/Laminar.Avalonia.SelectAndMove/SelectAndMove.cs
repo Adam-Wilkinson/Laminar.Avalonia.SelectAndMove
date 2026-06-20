@@ -298,6 +298,7 @@ public class SelectAndMove : ItemsControl
     {
         base.PrepareContainerForItemOverride(container, item, index);
         container.SetValue(Avalonia.SelectAndMove.Selection.IsSelectableProperty, true, BindingPriority.Style);
+        ZIndexLayerManger.BringToFront(container);
     }
     
     private void BoundsChanged(AvaloniaPropertyChangedEventArgs args)

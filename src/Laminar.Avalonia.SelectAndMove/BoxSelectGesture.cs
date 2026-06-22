@@ -11,6 +11,8 @@ namespace Laminar.Avalonia.SelectAndMove;
 
 public class BoxSelectGesture : GestureRecognizer
 {
+    private const double MinimumBoxSize = 40;
+    
     public static readonly AttachedProperty<Rectangle> SelectionBoxProperty = AvaloniaProperty.RegisterAttached<BoxSelectGesture, Visual, Rectangle>(nameof(SelectionBox), new Rectangle { Stroke = Brushes.Red, StrokeThickness = 2 });
     public static Rectangle GetSelectionBox(Visual visual) => visual.GetValue(SelectionBoxProperty);
     public static void SetSelectionBox(Visual visual, Rectangle value) => visual.SetValue(SelectionBoxProperty, value);
@@ -65,6 +67,7 @@ public class BoxSelectGesture : GestureRecognizer
         if (e.Pointer is not Pointer pointer 
             || e.Handled
             || pointer.IsGestureRecognitionSkipped 
+            || pointer.Type != PointerType.Mouse
             || !ButtonIsPressed(e.Properties, BoxSelectMouseButton))
         {
             return;
@@ -81,6 +84,12 @@ public class BoxSelectGesture : GestureRecognizer
             return;
         }
 
+        var dist = _originalClick.GetPosition(null) - e.GetPosition(null);
+        if (dist.X * dist.X + dist.Y * dist.Y < MinimumBoxSize)
+        {
+            return;
+        }
+        
         if (_capturedPointer is null)
         {
             Capture(e.Pointer);

@@ -30,7 +30,7 @@ public class SelectAndMoveItem : ContentControl, ISelectable
 
     public SelectAndMoveItem()
     {
-        this[!Selection.IsSelectedProperty] = this[!IsSelectedProperty];
+        this[!Selection.IsSelectedProperty] = this[(!IsSelectedProperty).WithMode(BindingMode.TwoWay)];
     }
     
     public bool IsSelected

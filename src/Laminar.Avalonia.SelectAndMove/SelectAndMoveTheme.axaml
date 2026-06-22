@@ -14,6 +14,13 @@
                         ClipToBounds="{TemplateBinding ClipToBounds}"
                         CornerRadius="{TemplateBinding CornerRadius}">
                     <Border.GestureRecognizers>
+                        <sam:TwoPointerMoveGestureRecognizer/>
+                        
+                        <ScrollGestureRecognizer CanHorizontallyScroll="True"
+                                                 CanVerticallyScroll="True"
+                                                 IsScrollInertiaEnabled="True"
+                                                 ScrollStartDistance="9"/>
+                        
                         <sam:MoveSelectionGesture SnapGrid="{TemplateBinding SnapGrid}"
                                                   SnapMode="{TemplateBinding (sam:MoveSelectionGesture.SnapMode)}"/>
                         

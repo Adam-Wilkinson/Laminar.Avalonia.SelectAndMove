@@ -10,6 +10,8 @@ namespace Laminar.Avalonia.SelectAndMove;
 
 public class MoveSelectionGesture : GestureRecognizer
 {
+    private const double MinimumMoveDistance = 30;
+    
     public static readonly StyledProperty<Rect> SnapGridProperty = AvaloniaProperty.RegisterAttached<MoveSelectionGesture, Rect>(nameof(SnapGrid), typeof(MoveSelectionGesture), new Rect(0, 0, 50, 50));
 
     public static readonly AttachedProperty<SnapMode> SnapModeProperty = AvaloniaProperty.RegisterAttached<MoveSelectionGesture, StyledElement, SnapMode>(nameof(SnapMode));
@@ -104,10 +106,14 @@ public class MoveSelectionGesture : GestureRecognizer
             return;
         }
 
-        Capture(e.Pointer);
-
-        
         Point targetDelta = e.GetPosition(visualTarget) - _originalClickPoint;
+
+        if (targetDelta.X * targetDelta.X + targetDelta.Y * targetDelta.Y < MinimumMoveDistance)
+        {
+            return;
+        }
+        
+        Capture(e.Pointer);
 
         foreach ((InputElement control, Point originalControlTopLeft) in _moving)
         {

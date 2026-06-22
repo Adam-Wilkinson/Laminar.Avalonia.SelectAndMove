@@ -1,4 +1,5 @@
 ﻿using System.Collections.Specialized;
+using System.Diagnostics;
 using Avalonia;
 using Avalonia.Collections;
 using Avalonia.Controls;
@@ -53,9 +54,9 @@ public class SelectAndMove : ItemsControl
     private PointerEventArgs? _previousPanArgs;
     private bool _blockRenderRecalculation;
     private bool _selectionChanging;
+    private bool _lastClickOnSelectedElement;
     private Visual? _transformRoot;
     private List<InputElement> _clickedElements = [];
-    private bool _lastClickOnSelectedElement;
 
     static SelectAndMove()
     {
@@ -63,6 +64,10 @@ public class SelectAndMove : ItemsControl
         ViewTranslateXProperty.Changed.AddClassHandler<SelectAndMove>((sam, _) => sam.RecalculateRenderTransform());
         ViewTranslateYProperty.Changed.AddClassHandler<SelectAndMove>((sam, _) => sam.RecalculateRenderTransform());
         BoundsProperty.Changed.AddClassHandler<SelectAndMove>((sam, args) => sam.BoundsChanged(args));
+
+        TwoPointerMoveGestureRecognizer.TwoPointerMoveEvent.AddClassHandler<SelectAndMove>((sam, args) =>
+            sam.OnTwoPointerGesture(args));
+        ScrollGestureEvent.AddClassHandler<SelectAndMove>((sam, args) => sam.OnScroll(args));
         
         ItemsPanelProperty.OverrideDefaultValue<SelectAndMove>(DefaultPanel);
         BackgroundProperty.OverrideDefaultValue<SelectAndMove>(Brush.Parse("#00000000"));
@@ -76,7 +81,7 @@ public class SelectAndMove : ItemsControl
         };
         Application.Current?.Resources.MergedDictionaries.Add(selectAndMoveTheme);
     }
-    
+
     public Visual TransformRoot => _transformRoot ?? this;
 
     /// <summary>
@@ -207,19 +212,12 @@ public class SelectAndMove : ItemsControl
         if (args is PointerPressedEventArgs pointerPressedEventArgs)
         {
             if (pointerPressedEventArgs.Handled || !pointerPressedEventArgs.Properties.IsLeftButtonPressed) return;
-
             _lastClickOnSelectedElement = false;
             _clickedElements = GetSelectableChildAtPointerPress(pointerPressedEventArgs)
                 .Reverse()
                 .OrderBy(x => x.ZIndex)
                 .ToList();
 
-            if (_clickedElements.Count == 0)
-            {
-                Laminar.Avalonia.SelectAndMove.Selection.ClearSiblingSelection(this);
-                return;
-            }
-        
             if (Laminar.Avalonia.SelectAndMove.Selection.GetIsSelected(_clickedElements[^1]))
             {
                 _lastClickOnSelectedElement = true;
@@ -245,14 +243,46 @@ public class SelectAndMove : ItemsControl
                 Laminar.Avalonia.SelectAndMove.Selection.SetIsSelected(_clickedElements[0], true);
                 ZIndexLayerManger.BringToFront(_clickedElements[0]);
             }
+            
+            args.Handled = true;
         }
     }
-    
+
     protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
     {
         base.OnApplyTemplate(e);
         _transformRoot = e.NameScope.Find<Visual>("PART_TransformRoot");
         RaisePropertyChanged(TransformRootProperty, this, _transformRoot!);
+    }
+
+    private void OnScroll(ScrollGestureEventArgs args)
+    {
+        using var _ = new ChangeTransformScope(this);
+        ViewTranslateX -= args.Delta.X / ViewZoom;
+        ViewTranslateY -= args.Delta.Y / ViewZoom;
+        args.Handled = true;
+    }
+
+    protected override void OnPointerReleased(PointerReleasedEventArgs e)
+    {
+        base.OnPointerReleased(e);
+        if (ItemsPanelRoot is null)
+        {
+            return;
+        }
+        
+        foreach (var child in ItemsPanelRoot.Children)
+        {
+            SelectingItemsControl.SetIsSelected(child, false);
+        }
+    }
+
+    private void OnTwoPointerGesture(TwoPointerMoveEventArgs args)
+    {
+        using var _ = new ChangeTransformScope(this);
+        ViewTranslateX += args.CenterDelta.X / ViewZoom;
+        ViewTranslateY += args.CenterDelta.Y / ViewZoom;
+        ViewZoom *= (args.ScaleDelta.X + args.ScaleDelta.Y) / 2;
     }
 
     protected override void OnPointerWheelChanged(PointerWheelEventArgs e)

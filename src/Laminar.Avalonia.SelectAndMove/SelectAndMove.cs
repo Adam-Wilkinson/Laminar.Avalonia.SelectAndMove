@@ -27,9 +27,13 @@ public enum ResizeBehavior
 }
 
 [PseudoClasses(IsPanningPseudoclass)]
+[TemplatePart(SelectionGestureLayer, typeof(Canvas))]
+[TemplatePart(TransformRootName, typeof(Visual))]
 public class SelectAndMove : ItemsControl
 {
     private const string IsPanningPseudoclass = ":panning";
+    private const string SelectionGestureLayer = "PART_SelectionGestureLayer";
+    private const string TransformRootName = "PART_TransformRoot";
     
     private static readonly FuncTemplate<Panel?> DefaultPanel = new(() => new Canvas());
     
@@ -60,6 +64,7 @@ public class SelectAndMove : ItemsControl
     private bool _selectionChanging;
     private bool _lastClickOnSelectedElement;
     private Visual? _transformRoot;
+    private Canvas? _selectionGestureLayer;
     private List<InputElement> _clickedElements = [];
 
     static SelectAndMove()
@@ -212,6 +217,24 @@ public class SelectAndMove : ItemsControl
         ViewZoom = zoomAmount;
     }
 
+    public void BeginSelectionGesture(SelectingGestureRecognizer selectingGesture)
+    {
+        if (_selectionGestureLayer is null) throw new InvalidOperationException();
+        
+        _selectionGestureLayer.GestureRecognizers.Add(selectingGesture);
+        _selectionGestureLayer.IsHitTestVisible = true;
+        selectingGesture.OnGestureFinished += OnGestureFinished;
+        selectingGesture.BeginGesture();
+        return;
+
+        void OnGestureFinished(object? sender, EventArgs e)
+        {
+            _selectionGestureLayer.GestureRecognizers.Remove(selectingGesture);
+            _selectionGestureLayer.IsHitTestVisible = false;
+            selectingGesture.OnGestureFinished -= OnGestureFinished;
+        }
+    }
+
     internal void UpdateSelectionFromEvent(RoutedEventArgs args)
     {
         if (args is PointerPressedEventArgs pointerPressedEventArgs)
@@ -261,8 +284,10 @@ public class SelectAndMove : ItemsControl
     protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
     {
         base.OnApplyTemplate(e);
-        _transformRoot = e.NameScope.Find<Visual>("PART_TransformRoot");
+        _transformRoot = e.NameScope.Find<Visual>(TransformRootName);
         RaisePropertyChanged(TransformRootProperty, this, _transformRoot!);
+        
+        _selectionGestureLayer = e.NameScope.Find<Canvas>(SelectionGestureLayer);
     }
 
     private void OnScroll(ScrollGestureEventArgs args)
@@ -277,6 +302,12 @@ public class SelectAndMove : ItemsControl
     private void OnScrollEnded(ScrollGestureEndedEventArgs _)
     {
         PseudoClasses.Remove(IsPanningPseudoclass);
+    }
+
+    protected override void OnPointerPressed(PointerPressedEventArgs e)
+    {
+        base.OnPointerPressed(e);
+        
     }
 
     protected override void OnPointerReleased(PointerReleasedEventArgs e)

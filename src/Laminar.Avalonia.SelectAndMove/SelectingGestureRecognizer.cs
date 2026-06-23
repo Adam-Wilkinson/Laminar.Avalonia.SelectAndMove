@@ -22,27 +22,53 @@ public abstract class SelectingGestureRecognizer : GestureRecognizer
     
     private PointerPressedEventArgs? _originalClick;
     private IPointer? _capturedPointer;
+    private bool _beginGestureRequested;
 
+    public MouseButton TriggerSelectionMouseButton
+    {
+        get => GetValue(TriggerSelectionMouseButtonProperty);
+        set => SetValue(TriggerSelectionMouseButtonProperty, value);
+    }
+    
+    public void BeginGesture()
+    {
+        _beginGestureRequested = true;
+    }
+
+    public event EventHandler? OnGestureFinished;
+
+    protected Canvas? DrawingCanvas => Target as Canvas;
+    
     protected abstract Geometry? CreateUpdatedSelectionGeometry(PointerEventArgs mostRecentArgs);
 
-    protected abstract void Reset();
-    
+    protected abstract void Cleanup();
+
+    protected virtual void OnHoverMove(PointerEventArgs e)
+    {
+    }
+
     protected override void PointerPressed(PointerPressedEventArgs e)
     {
-        if (e.Pointer is not Pointer pointer 
-            || e.Handled
-            || pointer.IsGestureRecognitionSkipped 
-            || pointer.Type != PointerType.Mouse
-            || !ButtonIsPressed(e.Properties, GetTriggerSelectionMouseButton(this)))
+        // Right click = cancel gesture
+        if (e.Properties.PointerUpdateKind.GetMouseButton() == MouseButton.Right)
         {
-            return;
+            OnGestureFinished?.Invoke(this, EventArgs.Empty);
+            _beginGestureRequested = false;
         }
         
-        _originalClick = e;
+        if (PointerPressShouldTriggerGesture(e))
+        { 
+            _originalClick = e;
+        }
     }
 
     protected override void PointerMoved(PointerEventArgs e)
     {
+        if (_beginGestureRequested)
+        {
+            OnHoverMove(e);
+        }
+        
         if (Target is not InputElement target || _originalClick is null)
         {
             return;
@@ -54,12 +80,8 @@ public abstract class SelectingGestureRecognizer : GestureRecognizer
             return;
         }
         
-        if (_capturedPointer is null)
-        {
-            Capture(e.Pointer);
-            _capturedPointer = e.Pointer;            
-        }
-
+        EnsurePointerCaptured(e.Pointer);
+        
         if (CreateUpdatedSelectionGeometry(e) is not { } selectionGeometry)
         {
             return;
@@ -93,7 +115,9 @@ public abstract class SelectingGestureRecognizer : GestureRecognizer
     {
         _capturedPointer = null;
         _originalClick = null;
-        Reset();
+        _beginGestureRequested = false;
+        Cleanup();
+        OnGestureFinished?.Invoke(this, EventArgs.Empty);
     }
     
     private bool SelectionIntersectionCheck(Geometry selectionGeometry, InputElement control)
@@ -148,14 +172,24 @@ public abstract class SelectingGestureRecognizer : GestureRecognizer
         }
         return null;
     }
-    
-    private static bool ButtonIsPressed(PointerPointProperties pointerProperties, MouseButton button) => button switch
+
+    private bool PointerPressShouldTriggerGesture(PointerPressedEventArgs e)
     {
-        MouseButton.Left => pointerProperties.IsLeftButtonPressed,
-        MouseButton.Right => pointerProperties.IsRightButtonPressed,
-        MouseButton.Middle => pointerProperties.IsMiddleButtonPressed,
-        MouseButton.XButton1 => pointerProperties.IsXButton1Pressed,
-        MouseButton.XButton2 => pointerProperties.IsXButton2Pressed,
-        _ => false,
-    };
+        if (_beginGestureRequested)
+        {
+            return true;
+        }
+        
+        return e is { Pointer: Pointer { IsGestureRecognitionSkipped: false, Type: PointerType.Mouse }, Handled: false }
+               && e.Properties.PointerUpdateKind.GetMouseButton() == GetTriggerSelectionMouseButton(this);
+    }
+
+    private void EnsurePointerCaptured(IPointer pointer)
+    {
+        if (Equals(_capturedPointer, pointer)) return;
+
+        _capturedPointer?.Capture(null);
+        Capture(pointer);
+        _capturedPointer = pointer;
+    }
 }

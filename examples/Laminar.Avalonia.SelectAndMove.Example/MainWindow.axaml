@@ -232,40 +232,33 @@
 
 	<Window.Styles>
 		<Styles>
+			<Style Selector=":is(Shape)[(sam|Selection.IsSelected)=True]">
+				<Setter Property="Stroke" Value="Red"/>
+				<Setter Property="StrokeThickness" Value="3"/>				
+			</Style>
+			
 			<Style Selector="TextBlock#Unmovable">
-				<Style Selector="^[(sam|Selection.IsSelected)=False]">
-					<Setter Property="Opacity" Value="1.0"/>
-				</Style>
+				<Setter Property="Opacity" Value="1.0"/>
 				
 				<Style Selector="^[(sam|Selection.IsSelected)=True]">
 					<Setter Property="Opacity" Value="0.6"/>
 				</Style>
 			</Style>
-
-			<Style Selector=":is(Shape)[(sam|Selection.IsSelected)=true]">
-				<Setter Property="Stroke" Value="Red"/>
-				<Setter Property="StrokeThickness" Value="3"/>
-			</Style>
-
-			<Style Selector=":is(Shape)[(sam|Selection.IsSelected)=false]">
-				<Setter Property="Stroke" Value="Red"/>
-				<Setter Property="StrokeThickness" Value="0"/>
-			</Style>
-
-			<Style Selector="TextBlock#InterestingSelection[(sam|Selection.IsSelected)=true]">
-				<Setter Property="Foreground" Value="Gray"/>
-			</Style>
-
-			<Style Selector="TextBlock#InterestingSelection[(sam|Selection.IsSelected)=false]">
+			
+			<Style Selector="TextBlock#InterestingSelection">
 				<Setter Property="Foreground" Value="{DynamicResource ThemeForegroundBrush}"/>
+				
+				<Style Selector="^[(sam|Selection.IsSelected)=True]">
+					<Setter Property="Foreground" Value="Gray"/>
+				</Style>
 			</Style>
 			
-			<Style Selector="Panel#EllipseWithText[(sam|Selection.IsSelected)=true] Ellipse">
-				<Setter Property="Fill" Value="DarkCyan"/>
-			</Style>
-
-			<Style Selector="Panel#EllipseWithText[(sam|Selection.IsSelected)=false] Ellipse">
+			<Style Selector="Panel#EllipseWithText Ellipse">
 				<Setter Property="Fill" Value="Olive"/>
+				
+				<Style Selector="^[(sam|Selection.IsSelected)=True]">
+					<Setter Property="Fill" Value="DarkCyan"/>
+				</Style>
 			</Style>
 
 			<Style Selector=":is(Separator)">

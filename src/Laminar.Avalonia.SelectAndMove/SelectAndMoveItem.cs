@@ -57,18 +57,38 @@ public class SelectAndMoveItem : ContentControl, ISelectable
         base.OnAttachedToLogicalTree(e);
     }
 
-    protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
+    protected override bool RegisterContentPresenter(ContentPresenter presenter)
     {
-        base.OnApplyTemplate(e);
         _childChangedSubscription?.Dispose();
+        if (!base.RegisterContentPresenter(presenter))
+        {
+            return false;
+        }
+        
         _childChangedSubscription = Presenter?.GetObservable(ContentPresenter.ChildProperty).Subscribe(
             new AnonymousObserver<Control?>(child =>
             {
                 if (child is null) return;
+
+                if (!child.IsSet(Selection.IsSelectedProperty))
+                {
+                    child.SetValue(Selection.IsSelectableProperty, true, BindingPriority.Style);
+                }
+
+                if (!child.IsSet(MoveSelectionGesture.IsMovableProperty))
+                {
+                    child.SetValue(MoveSelectionGesture.IsMovableProperty, true, BindingPriority.Style);
+                }
+                
                 this[!LeftProperty] = child[(!Canvas.LeftProperty).WithMode(BindingMode.TwoWay)];
                 this[!TopProperty] = child[(!Canvas.TopProperty).WithMode(BindingMode.TwoWay)];
                 this[!ZIndexLayerManger.ZIndexLayerProperty] = child[(!ZIndexLayerManger.ZIndexLayerProperty).WithMode(BindingMode.TwoWay)];
+                this[!Selection.IsSelectableProperty] = child[(!Selection.IsSelectableProperty).WithMode(BindingMode.TwoWay)];
+                this[!MoveSelectionGesture.IsMovableProperty] = child[(!MoveSelectionGesture.IsMovableProperty).WithMode(BindingMode.TwoWay)];
+                child[!SelectingItemsControl.IsSelectedProperty] = this[(!SelectingItemsControl.IsSelectedProperty).WithMode(BindingMode.OneWay)];
+                child[!Selection.IsSelectedProperty] = this[(!Selection.IsSelectedProperty).WithMode(BindingMode.OneWay)];
             }));
+        return true;
     }
 
     protected override void OnPointerPressed(PointerPressedEventArgs e)

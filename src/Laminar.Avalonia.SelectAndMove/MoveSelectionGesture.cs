@@ -52,22 +52,13 @@ public class MoveSelectionGesture : GestureRecognizer
         }
 
         // Bubble up from the clicked object until we find a selected, movable control
-        if (e.Source is not Interactive interactiveSource)
+        if (e.Source is not Visual interactiveSource)
         {
             return;
         }
 
-        while (interactiveSource is not null 
-               && !(interactiveSource is Control currentControl 
-                    && Selection.GetIsSelectable(currentControl)
-                    && Selection.GetIsSelected(currentControl) 
-                    && GetIsMovable(currentControl)
-                    && interactiveSource.GetVisualParent() is Canvas))
-        {
-            interactiveSource = interactiveSource.GetInteractiveParent()!;
-        }
-
-        if (interactiveSource is null)
+        var samItem = interactiveSource.FindAncestorOfType<SelectAndMoveItem>();
+        if (samItem is null || !GetIsMovable(samItem) || !Selection.GetIsSelectable(samItem))
         {
             return;
         }

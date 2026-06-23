@@ -3,6 +3,7 @@ using System.Diagnostics;
 using Avalonia;
 using Avalonia.Collections;
 using Avalonia.Controls;
+using Avalonia.Controls.Metadata;
 using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Templates;
 using Avalonia.Data;
@@ -25,8 +26,11 @@ public enum ResizeBehavior
     KeepView = KeepZoom | KeepCenter,
 }
 
+[PseudoClasses(IsPanningPseudoclass)]
 public class SelectAndMove : ItemsControl
 {
+    private const string IsPanningPseudoclass = ":panning";
+    
     private static readonly FuncTemplate<Panel?> DefaultPanel = new(() => new Canvas());
     
     public static readonly StyledProperty<MouseButton> PanMouseButtonProperty = AvaloniaProperty.Register<SelectAndMove, MouseButton>(nameof(PanMouseButton), MouseButton.Middle);
@@ -68,6 +72,7 @@ public class SelectAndMove : ItemsControl
         TwoPointerMoveGestureRecognizer.TwoPointerMoveEvent.AddClassHandler<SelectAndMove>((sam, args) =>
             sam.OnTwoPointerGesture(args));
         ScrollGestureEvent.AddClassHandler<SelectAndMove>((sam, args) => sam.OnScroll(args));
+        ScrollGestureEndedEvent.AddClassHandler<SelectAndMove>((sam, args) => sam.OnScrollEnded(args));
         
         ItemsPanelProperty.OverrideDefaultValue<SelectAndMove>(DefaultPanel);
         BackgroundProperty.OverrideDefaultValue<SelectAndMove>(Brush.Parse("#00000000"));
@@ -213,11 +218,16 @@ public class SelectAndMove : ItemsControl
         {
             if (pointerPressedEventArgs.Handled || !pointerPressedEventArgs.Properties.IsLeftButtonPressed) return;
             _lastClickOnSelectedElement = false;
-            _clickedElements = GetSelectableChildAtPointerPress(pointerPressedEventArgs)
+            _clickedElements = GetSelectableChildrenAtPointerPress(pointerPressedEventArgs)
                 .Reverse()
                 .OrderBy(x => x.ZIndex)
                 .ToList();
 
+            if (_clickedElements.Count == 0)
+            {
+                return;
+            }
+            
             if (Laminar.Avalonia.SelectAndMove.Selection.GetIsSelected(_clickedElements[^1]))
             {
                 _lastClickOnSelectedElement = true;
@@ -257,14 +267,20 @@ public class SelectAndMove : ItemsControl
 
     private void OnScroll(ScrollGestureEventArgs args)
     {
+        PseudoClasses.Add(IsPanningPseudoclass);
         using var _ = new ChangeTransformScope(this);
         ViewTranslateX -= args.Delta.X / ViewZoom;
         ViewTranslateY -= args.Delta.Y / ViewZoom;
         args.Handled = true;
     }
+    
+    private void OnScrollEnded(ScrollGestureEndedEventArgs _)
+    {
+        PseudoClasses.Remove(IsPanningPseudoclass);
+    }
 
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
-    {
+    { 
         base.OnPointerReleased(e);
         if (ItemsPanelRoot is null)
         {
@@ -275,6 +291,8 @@ public class SelectAndMove : ItemsControl
         {
             SelectingItemsControl.SetIsSelected(child, false);
         }
+        
+        PseudoClasses.Remove(IsPanningPseudoclass);
     }
 
     private void OnTwoPointerGesture(TwoPointerMoveEventArgs args)
@@ -305,6 +323,7 @@ public class SelectAndMove : ItemsControl
 
         if (_previousPanArgs is not null)
         {
+            PseudoClasses.Add(IsPanningPseudoclass);
             using var _ = new ChangeTransformScope(this);
             Point delta = e.GetPosition(_transformRoot) - _previousPanArgs.GetPosition(_transformRoot);
             ViewTranslateX += delta.X;
@@ -384,7 +403,7 @@ public class SelectAndMove : ItemsControl
         if (_selectionChanging) return;
         _selectionChanging = true;
         Selection = Avalonia.SelectAndMove.Selection.GetSelectedElements(this)!
-            .Cast<Control>().Select(x => ItemFromContainer(x) ?? throw new ArgumentNullException()).ToList();
+            .Cast<Control>().Select(ItemFromContainer).OfType<Control>().ToList();
         _selectionChanging = false;
     }
 
@@ -404,7 +423,7 @@ public class SelectAndMove : ItemsControl
         _selectionChanging = false;
     }
 
-    private IEnumerable<InputElement> GetSelectableChildAtPointerPress(PointerPressedEventArgs point)
+    private IEnumerable<InputElement> GetSelectableChildrenAtPointerPress(PointerPressedEventArgs point)
     {
         if (TopLevel.GetTopLevel(this) is not { } topLevel)
         {
@@ -415,7 +434,7 @@ public class SelectAndMove : ItemsControl
                      .Select(visualAtCursor => visualAtCursor
                          .GetSelfAndVisualAncestors()
                          .FirstOrDefault(ancestor => 
-                             ancestor is InputElement element && Laminar.Avalonia.SelectAndMove.Selection.GetIsSelectable(element)))
+                             ancestor is SelectAndMoveItem samItem && Laminar.Avalonia.SelectAndMove.Selection.GetIsSelectable(samItem)))
                      .OfType<InputElement>())
         {
             if (child.InputHitTest(point.GetPosition(child)) is not null)

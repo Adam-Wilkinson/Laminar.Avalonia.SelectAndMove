@@ -3,6 +3,7 @@
                     xmlns:sam="using:Laminar.Avalonia.SelectAndMove">
     <ControlTheme TargetType="sam:SelectAndMove" x:Key="{x:Type sam:SelectAndMove}">
         <Setter Property="sam:BackgroundGridLines.LineBrush" Value="{DynamicResource SystemBaseLowColor}"/>
+        <Setter Property="Cursor" Value="Arrow"/>
         
         <Setter Property="Template">
             <ControlTemplate>
@@ -44,5 +45,9 @@
                 </Border>
             </ControlTemplate>
         </Setter>
+        
+        <Style Selector="^:panning">
+            <Setter Property="Cursor" Value="SizeAll"/>
+        </Style>
     </ControlTheme>
 </ResourceDictionary>

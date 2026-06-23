@@ -146,17 +146,11 @@
 		<sam:SelectAndMove 
 			Name="ExampleSelectAndMove">
 			
-			<sam:SelectAndMove.SelectionGestures>
-				<sam:SelectionGestureCollection>
-					<sam:BoxSelectGesture TriggerSelectionMouseButton="Left">
-						<sam:BoxSelectGesture.SelectionBoxTemplate>
-							<sam:SelectionBoxTemplate>
-								<Rectangle Stroke="Gray" StrokeThickness="4"/>
-							</sam:SelectionBoxTemplate>
-						</sam:BoxSelectGesture.SelectionBoxTemplate>
-					</sam:BoxSelectGesture>
-				</sam:SelectionGestureCollection>
-			</sam:SelectAndMove.SelectionGestures>
+			<sam:BoxSelectGesture.SelectionBoxTemplate>
+				<sam:SelectionBoxTemplate>
+					<Rectangle Stroke="Gray" StrokeThickness="4"/>
+				</sam:SelectionBoxTemplate>
+			</sam:BoxSelectGesture.SelectionBoxTemplate>
 			
 			<TextBlock Name="BackgroundOne"
 			           Canvas.Left="500"

@@ -1,4 +1,5 @@
 ﻿using Avalonia;
+using Avalonia.Animation;
 using Avalonia.Controls;
 using Avalonia.Controls.Shapes;
 using Avalonia.Input;
@@ -8,7 +9,9 @@ namespace Laminar.Avalonia.SelectAndMove;
 
 public class BoxSelectGesture : SelectingGestureRecognizer
 {
-    public static readonly StyledProperty<ITemplate<Rectangle?>?> SelectionBoxTemplateProperty = AvaloniaProperty.Register<BoxSelectGesture, ITemplate<Rectangle?>?>("SelectionBox");
+    public static readonly AttachedProperty<ITemplate<Rectangle?>?> SelectionBoxTemplateProperty = AvaloniaProperty.RegisterAttached<BoxSelectGesture, StyledElement, ITemplate<Rectangle?>?>("SelectionBoxTemplate", inherits: true);
+    public static ITemplate<Rectangle?>? GetSelectionBoxTemplate(StyledElement element) => element.GetValue(SelectionBoxTemplateProperty);
+    public static void SetSelectionBoxTemplate(StyledElement element, ITemplate<Rectangle?>? template) => element.SetValue(SelectionBoxTemplateProperty, template);
     
     private PointerEventArgs? _originalClick;
     private Rectangle _selectionBox;
@@ -50,8 +53,8 @@ public class BoxSelectGesture : SelectingGestureRecognizer
 
         if (!_selectionBoxAdded)
         {
-            DrawingCanvas?.Children.Add(_selectionBox);
             _selectionBoxAdded = true;
+            DrawingCanvas?.Children.Add(_selectionBox);
         }
 
         return new RectangleGeometry(drawnRect);
@@ -66,14 +69,10 @@ public class BoxSelectGesture : SelectingGestureRecognizer
 
     private void SelectionBoxChanged(AvaloniaPropertyChangedEventArgs args)
     {
-        DrawingCanvas?.Children.Remove(_selectionBox);
-        
         _selectionBox = args.GetNewValue<ITemplate<Rectangle?>?>()?.Build() ?? new Rectangle
         {
             Stroke = Brushes.Red,
             StrokeThickness = 3
         };
-        
-        DrawingCanvas?.Children.Add(_selectionBox);
     }
 }

@@ -5,6 +5,12 @@
         <Setter Property="sam:BackgroundGridLines.LineBrush" Value="{DynamicResource SystemBaseLowColor}"/>
         <Setter Property="Cursor" Value="Arrow"/>
         
+        <Setter Property="sam:BoxSelectGesture.SelectionBoxTemplate">
+            <sam:SelectionBoxTemplate>
+                <Rectangle Stroke="Red" StrokeThickness="3"/>
+            </sam:SelectionBoxTemplate>
+        </Setter>
+        
         <Setter Property="SelectionGestures">
             <sam:SelectionGestureCollection>
                 <sam:BoxSelectGesture TriggerSelectionMouseButton="Left"/>

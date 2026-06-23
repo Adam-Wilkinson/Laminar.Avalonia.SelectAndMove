@@ -79,12 +79,13 @@ public class SelectAndMoveItem : ContentControl, ISelectable
                 {
                     child.SetValue(MoveSelectionGesture.IsMovableProperty, true, BindingPriority.Style);
                 }
+
+                BindIfSet(child, Canvas.LeftProperty, propertyOnSamItem: LeftProperty);
+                BindIfSet(child, Canvas.TopProperty, propertyOnSamItem: TopProperty);
+                BindIfSet(child, ZIndexLayerManger.ZIndexLayerProperty);
+                BindIfSet(child, Selection.IsSelectableProperty);
+                BindIfSet(child, MoveSelectionGesture.IsMovableProperty);
                 
-                this[!LeftProperty] = child[(!Canvas.LeftProperty).WithMode(BindingMode.TwoWay)];
-                this[!TopProperty] = child[(!Canvas.TopProperty).WithMode(BindingMode.TwoWay)];
-                this[!ZIndexLayerManger.ZIndexLayerProperty] = child[(!ZIndexLayerManger.ZIndexLayerProperty).WithMode(BindingMode.TwoWay)];
-                this[!Selection.IsSelectableProperty] = child[(!Selection.IsSelectableProperty).WithMode(BindingMode.TwoWay)];
-                this[!MoveSelectionGesture.IsMovableProperty] = child[(!MoveSelectionGesture.IsMovableProperty).WithMode(BindingMode.TwoWay)];
                 child[!SelectingItemsControl.IsSelectedProperty] = this[(!SelectingItemsControl.IsSelectedProperty).WithMode(BindingMode.OneWay)];
                 child[!Selection.IsSelectedProperty] = this[(!Selection.IsSelectedProperty).WithMode(BindingMode.OneWay)];
             }));
@@ -101,5 +102,14 @@ public class SelectAndMoveItem : ContentControl, ISelectable
     {
         base.OnPointerReleased(e);
         _selectAndMoveOwner?.UpdateSelectionFromEvent(e);
+    }
+
+    private void BindIfSet(Control target, AvaloniaProperty propertyOnTarget, AvaloniaProperty? propertyOnSamItem = null, BindingMode mode = BindingMode.TwoWay)
+    {
+        propertyOnSamItem ??= propertyOnTarget;
+        if (target.IsSet(propertyOnTarget))
+        {
+            this[!propertyOnSamItem] = target[(!propertyOnTarget).WithMode(mode).WithPriority(BindingPriority.Style)];
+        }
     }
 }

@@ -13,15 +13,16 @@ public partial class MainWindowViewModel : ObservableObject
 
     [ObservableProperty] public partial IReadOnlyList<object>? Selection { get; set; }
     
-    public ObservableCollection<SelectAndMoveItem> Items { get; } = [];
+    public ObservableCollection<SelectAndMoveItemModel> Items { get; } = [];
     
     [RelayCommand]
     private void AddElement(Point point)
     {
-        Items.Add(new SelectAndMoveItem
+        Items.Add(new SelectAndMoveItemModel
         {
             Text = NewElementName,
-            Position = point
+            X = point.X,
+            Y = point.Y
         });
     }
 
@@ -29,7 +30,7 @@ public partial class MainWindowViewModel : ObservableObject
     private void Delete()
     {
         if (Selection is null || Selection.Count == 0) return;
-        foreach (var item in Selection.Cast<SelectAndMoveItem>().ToList())
+        foreach (var item in Selection.Cast<SelectAndMoveItemModel>().ToList())
         {
             Items.Remove(item);
         }

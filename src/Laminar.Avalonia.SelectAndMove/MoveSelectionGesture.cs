@@ -84,6 +84,7 @@ public class MoveSelectionGesture : GestureRecognizer
             
             originalBoundsOfSelection = originalBoundsOfSelection.Union(sibling.Bounds);
             _moving.Add((sibling, controlTopLeftToParent));
+            ZIndexLayerManger.BringToFront(sibling);
         }
 
         _snapPoint = GetSnapPoint(originalBoundsOfSelection, SnapMode);

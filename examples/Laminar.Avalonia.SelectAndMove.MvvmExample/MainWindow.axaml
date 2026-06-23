@@ -42,8 +42,10 @@
                            sam:BackgroundGridLines.LineBrush="#111"
                            ItemsSource="{Binding Items}">
             <sam:SelectAndMove.ItemTemplate>
-                <DataTemplate DataType="vm:SelectAndMoveItem">
-                    <Panel sam:BoxSelectGesture.IntersectionShape="{Binding #HitTestShape}">
+                <DataTemplate DataType="vm:SelectAndMoveItemModel">
+                    <Panel sam:SelectingGestureRecognizer.IntersectionShape="{Binding #HitTestShape}"
+                           Canvas.Left="{Binding X}"
+                           Canvas.Top="{Binding Y}">
                         <Ellipse Name="HitTestShape" 
                                  HorizontalAlignment="Stretch"
                                  VerticalAlignment="Stretch">
@@ -62,13 +64,6 @@
                     </Panel>
                 </DataTemplate>
             </sam:SelectAndMove.ItemTemplate>
-            
-            <sam:SelectAndMove.Styles>
-                <Style Selector="sam|SelectAndMove > ContentPresenter" x:DataType="vm:SelectAndMoveItem">
-                    <Setter Property="Canvas.Left" Value="{Binding Position.X}"/>
-                    <Setter Property="Canvas.Top" Value="{Binding Position.Y}"/>
-                </Style>
-            </sam:SelectAndMove.Styles>
         </sam:SelectAndMove>
     </DockPanel>
 </Window>

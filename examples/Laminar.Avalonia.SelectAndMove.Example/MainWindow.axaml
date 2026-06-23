@@ -90,7 +90,7 @@
 				          HorizontalAlignment="Stretch"
 				          Grid.Row="2" Grid.Column="1"
 				          ItemsSource="{x:Static loc:MainWindow.AllMouseButtons}"
-				          SelectedItem="{Binding #ExampleSelectAndMove.(sam:BoxSelectGesture.BoxSelectMouseButton), Mode=TwoWay}"/>
+				          SelectedItem="{Binding #ExampleSelectAndMove.(sam:BoxSelectGesture.TriggerSelectionMouseButton), Mode=TwoWay}"/>
 				
 				<TextBlock
 					Grid.Row="3" Grid.Column="0"
@@ -184,11 +184,13 @@
 				Fill="Blue"/>
 			
 			<Panel
+				sam:SelectingGestureRecognizer.IntersectionShape="{Binding #EllipseWithTextIntersectTarget}"
 				Name="EllipseWithText"
 				Canvas.Left="50"
 				Canvas.Top="100">
 				
 				<Ellipse
+					Name="EllipseWithTextIntersectTarget"
 					Width="250"
 					Height="50"/>
 				

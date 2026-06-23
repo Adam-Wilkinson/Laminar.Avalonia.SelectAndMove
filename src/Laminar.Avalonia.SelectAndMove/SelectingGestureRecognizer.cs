@@ -20,7 +20,7 @@ public abstract class SelectingGestureRecognizer : GestureRecognizer
     public static Shape? GetIntersectionShape(StyledElement visual) => visual.GetValue(IntersectionShapeProperty);
     public static void SetIntersectionShape(StyledElement visual, Shape? value) => visual.SetValue(IntersectionShapeProperty, value);
     
-    private PointerPressedEventArgs? _originalClick;
+    private PointerEventArgs? _originalClick;
     private IPointer? _capturedPointer;
     private bool _beginGestureRequested;
 
@@ -29,15 +29,36 @@ public abstract class SelectingGestureRecognizer : GestureRecognizer
         get => GetValue(TriggerSelectionMouseButtonProperty);
         set => SetValue(TriggerSelectionMouseButtonProperty, value);
     }
+
+    protected internal Canvas? DrawingCanvas
+    {
+        get => field ??= Target as Canvas;
+        set;
+    }
     
-    public void BeginGesture()
+    public void BeginHover()
     {
         _beginGestureRequested = true;
     }
 
+    public void BeginGesture(PointerEventArgs e)
+    {
+        _originalClick = e;
+    }
+    
+    public bool PointerPressShouldTriggerGesture(PointerPressedEventArgs e)
+    {
+        if (_beginGestureRequested)
+        {
+            return true;
+        }
+        
+        return e is { Pointer: Pointer { IsGestureRecognitionSkipped: false, Type: PointerType.Mouse }, Handled: false }
+               && e.Properties.PointerUpdateKind.GetMouseButton() == GetTriggerSelectionMouseButton(this);
+    }
+
     public event EventHandler? OnGestureFinished;
 
-    protected Canvas? DrawingCanvas => Target as Canvas;
     
     protected abstract Geometry? CreateUpdatedSelectionGeometry(PointerEventArgs mostRecentArgs);
 
@@ -58,7 +79,7 @@ public abstract class SelectingGestureRecognizer : GestureRecognizer
         
         if (PointerPressShouldTriggerGesture(e))
         { 
-            _originalClick = e;
+            BeginGesture(e);
         }
     }
 
@@ -171,17 +192,6 @@ public abstract class SelectingGestureRecognizer : GestureRecognizer
             };
         }
         return null;
-    }
-
-    private bool PointerPressShouldTriggerGesture(PointerPressedEventArgs e)
-    {
-        if (_beginGestureRequested)
-        {
-            return true;
-        }
-        
-        return e is { Pointer: Pointer { IsGestureRecognitionSkipped: false, Type: PointerType.Mouse }, Handled: false }
-               && e.Properties.PointerUpdateKind.GetMouseButton() == GetTriggerSelectionMouseButton(this);
     }
 
     private void EnsurePointerCaptured(IPointer pointer)

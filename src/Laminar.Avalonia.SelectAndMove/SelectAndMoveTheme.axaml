@@ -5,9 +5,15 @@
         <Setter Property="sam:BackgroundGridLines.LineBrush" Value="{DynamicResource SystemBaseLowColor}"/>
         <Setter Property="Cursor" Value="Arrow"/>
         
+        <Setter Property="SelectionGestures">
+            <sam:SelectionGestureCollection>
+                <sam:BoxSelectGesture TriggerSelectionMouseButton="Left"/>
+            </sam:SelectionGestureCollection>
+        </Setter>
+        
         <Setter Property="Template">
             <ControlTemplate>
-                <Border Name="SelectAndMoveHitBorder" 
+                <Border Name="PART_BackgroundGestureTarget" 
                         Background="{TemplateBinding Background}"
                         BackgroundSizing="{TemplateBinding BackgroundSizing}"
                         BorderBrush="{TemplateBinding BorderBrush}"
@@ -15,19 +21,20 @@
                         ClipToBounds="{TemplateBinding ClipToBounds}"
                         CornerRadius="{TemplateBinding CornerRadius}">
                     
-                    <Border.GestureRecognizers>
-                        <sam:TwoPointerMoveGestureRecognizer/>
+                    <Panel Background="Transparent"
+                           IsHitTestVisible="True">
+                        <Panel.GestureRecognizers>
+                            <sam:TwoPointerMoveGestureRecognizer/>
                         
-                        <ScrollGestureRecognizer CanHorizontallyScroll="True"
-                                                 CanVerticallyScroll="True"
-                                                 IsScrollInertiaEnabled="True"
-                                                 ScrollStartDistance="9"/>
+                            <ScrollGestureRecognizer CanHorizontallyScroll="True"
+                                                     CanVerticallyScroll="True"
+                                                     IsScrollInertiaEnabled="True"
+                                                     ScrollStartDistance="9"/>
                         
-                        <sam:MoveSelectionGesture SnapGrid="{TemplateBinding SnapGrid}"
-                                                  SnapMode="{TemplateBinding (sam:MoveSelectionGesture.SnapMode)}"/>
-                    </Border.GestureRecognizers>
-                    
-                    <Panel>
+                            <sam:MoveSelectionGesture SnapGrid="{TemplateBinding SnapGrid}"
+                                                      SnapMode="{TemplateBinding (sam:MoveSelectionGesture.SnapMode)}"/>
+                        </Panel.GestureRecognizers>
+                        
                         <Panel Name="PART_TransformRoot">
                             <sam:BackgroundGridLines SnapGrid="{Binding SnapGrid,
                                                             RelativeSource={RelativeSource TemplatedParent}, 
@@ -42,7 +49,7 @@
                                             ItemsPanel="{TemplateBinding ItemsPanel}"/>
                         </Panel>
                         
-                        <Canvas Name="PART_SelectionGestureLayer" 
+                        <Canvas Name="PART_SelectionGestureOverlay" 
                                 HorizontalAlignment="Stretch" 
                                 VerticalAlignment="Stretch"
                                 Background="Transparent"

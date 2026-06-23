@@ -123,7 +123,7 @@
 			<UniformGrid Rows="0" HorizontalAlignment="Stretch">
 				<Button HorizontalAlignment="Stretch" 
 				        HorizontalContentAlignment="Center"
-				        Command="{Binding #ExampleSelectAndMove.BeginSelectionGesture}">
+				        Command="{Binding #ExampleSelectAndMove.ActivateSelectionGesture}">
 					<Button.CommandParameter>
 						<sam:BoxSelectGesture/>
 					</Button.CommandParameter>
@@ -146,11 +146,17 @@
 		<sam:SelectAndMove 
 			Name="ExampleSelectAndMove">
 			
-			<sam:BoxSelectGesture.SelectionBoxTemplate>
-				<sam:SelectionBoxTemplate>
-					<Rectangle Stroke="Gray" StrokeThickness="4"/>
-				</sam:SelectionBoxTemplate>
-			</sam:BoxSelectGesture.SelectionBoxTemplate>
+			<sam:SelectAndMove.SelectionGestures>
+				<sam:SelectionGestureCollection>
+					<sam:BoxSelectGesture TriggerSelectionMouseButton="Left">
+						<sam:BoxSelectGesture.SelectionBoxTemplate>
+							<sam:SelectionBoxTemplate>
+								<Rectangle Stroke="Gray" StrokeThickness="4"/>
+							</sam:SelectionBoxTemplate>
+						</sam:BoxSelectGesture.SelectionBoxTemplate>
+					</sam:BoxSelectGesture>
+				</sam:SelectionGestureCollection>
+			</sam:SelectAndMove.SelectionGestures>
 			
 			<TextBlock Name="BackgroundOne"
 			           Canvas.Left="500"

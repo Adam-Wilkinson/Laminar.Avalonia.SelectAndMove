@@ -1,5 +1,4 @@
 ﻿using System.Collections.Specialized;
-using System.Diagnostics;
 using Avalonia;
 using Avalonia.Collections;
 using Avalonia.Controls;
@@ -27,15 +26,19 @@ public enum ResizeBehavior
 }
 
 [PseudoClasses(IsPanningPseudoclass)]
-[TemplatePart(SelectionGestureLayer, typeof(Canvas))]
+[TemplatePart(SelectionGestureOverlayName, typeof(Canvas))]
 [TemplatePart(TransformRootName, typeof(Visual))]
+[TemplatePart(BackgroundGestureTargetName, typeof(InputElement))]
 public class SelectAndMove : ItemsControl
 {
     private const string IsPanningPseudoclass = ":panning";
-    private const string SelectionGestureLayer = "PART_SelectionGestureLayer";
+    private const string SelectionGestureOverlayName = "PART_SelectionGestureOverlay";
     private const string TransformRootName = "PART_TransformRoot";
+    private const string BackgroundGestureTargetName = "PART_BackgroundGestureTarget";
     
     private static readonly FuncTemplate<Panel?> DefaultPanel = new(() => new Canvas());
+
+    public static readonly StyledProperty<SelectionGestureCollection> SelectionGesturesProperty = AvaloniaProperty.Register<SelectAndMove, SelectionGestureCollection>(nameof(SelectionGestures), defaultValue: []); 
     
     public static readonly StyledProperty<MouseButton> PanMouseButtonProperty = AvaloniaProperty.Register<SelectAndMove, MouseButton>(nameof(PanMouseButton), MouseButton.Middle);
 
@@ -63,6 +66,7 @@ public class SelectAndMove : ItemsControl
     private bool _blockRenderRecalculation;
     private bool _selectionChanging;
     private bool _lastClickOnSelectedElement;
+    private InputElement? _gestureBackground;
     private Visual? _transformRoot;
     private Canvas? _selectionGestureLayer;
     private List<InputElement> _clickedElements = [];
@@ -72,18 +76,18 @@ public class SelectAndMove : ItemsControl
         ViewZoomProperty.Changed.AddClassHandler<SelectAndMove>((sam, _) => sam.RecalculateRenderTransform());
         ViewTranslateXProperty.Changed.AddClassHandler<SelectAndMove>((sam, _) => sam.RecalculateRenderTransform());
         ViewTranslateYProperty.Changed.AddClassHandler<SelectAndMove>((sam, _) => sam.RecalculateRenderTransform());
+        SelectionGesturesProperty.Changed.AddClassHandler<SelectAndMove>((sam, args) => sam.OnSelectionGesturesChanged(args));
         BoundsProperty.Changed.AddClassHandler<SelectAndMove>((sam, args) => sam.BoundsChanged(args));
+        Avalonia.SelectAndMove.Selection.SelectedElementsProperty.Changed.AddClassHandler<SelectAndMove>((sam, args) => sam.SelectedElementsChanged(args));
+        SelectionProperty.Changed.AddClassHandler<SelectAndMove>((sam, args) => sam.SelectionChanged(args));
 
-        TwoPointerMoveGestureRecognizer.TwoPointerMoveEvent.AddClassHandler<SelectAndMove>((sam, args) =>
-            sam.OnTwoPointerGesture(args));
+        TwoPointerMoveGestureRecognizer.TwoPointerMoveEvent.AddClassHandler<SelectAndMove>((sam, args) => sam.OnTwoPointerGesture(args));
         ScrollGestureEvent.AddClassHandler<SelectAndMove>((sam, args) => sam.OnScroll(args));
         ScrollGestureEndedEvent.AddClassHandler<SelectAndMove>((sam, args) => sam.OnScrollEnded(args));
         
         ItemsPanelProperty.OverrideDefaultValue<SelectAndMove>(DefaultPanel);
         BackgroundProperty.OverrideDefaultValue<SelectAndMove>(Brush.Parse("#00000000"));
         Avalonia.SelectAndMove.Selection.IsScopeProperty.OverrideDefaultValue<SelectAndMove>(true);
-        SelectionProperty.Changed.AddClassHandler<SelectAndMove>((sam, args) => sam.SelectionChanged(args));
-        Avalonia.SelectAndMove.Selection.SelectedElementsProperty.Changed.AddClassHandler<SelectAndMove>((sam, args) => sam.SelectedElementsChanged(args));
         
         ResourceInclude selectAndMoveTheme = new((Uri?)null)
         {
@@ -91,7 +95,7 @@ public class SelectAndMove : ItemsControl
         };
         Application.Current?.Resources.MergedDictionaries.Add(selectAndMoveTheme);
     }
-
+    
     public Visual TransformRoot => _transformRoot ?? this;
 
     /// <summary>
@@ -177,8 +181,14 @@ public class SelectAndMove : ItemsControl
         set => SetValue(SelectManyKeyModifiersProperty, value);
     }
 
-    public Matrix ComputeCurrentTransform() => Matrix.CreateTranslation(ViewTranslateX, ViewTranslateY) *
-                                               Matrix.CreateScale(ViewZoom, ViewZoom);
+    public SelectionGestureCollection SelectionGestures
+    {
+        get => GetValue(SelectionGesturesProperty);
+        set => SetValue(SelectionGesturesProperty, value);
+    }
+    
+    public Matrix ComputeCurrentTransform() => 
+        Matrix.CreateTranslation(ViewTranslateX, ViewTranslateY) * Matrix.CreateScale(ViewZoom, ViewZoom);
 
     public void ResetView()
     {
@@ -217,14 +227,14 @@ public class SelectAndMove : ItemsControl
         ViewZoom = zoomAmount;
     }
 
-    public void BeginSelectionGesture(SelectingGestureRecognizer selectingGesture)
+    public void ActivateSelectionGesture(SelectingGestureRecognizer selectingGesture)
     {
         if (_selectionGestureLayer is null) throw new InvalidOperationException();
         
         _selectionGestureLayer.GestureRecognizers.Add(selectingGesture);
         _selectionGestureLayer.IsHitTestVisible = true;
         selectingGesture.OnGestureFinished += OnGestureFinished;
-        selectingGesture.BeginGesture();
+        selectingGesture.BeginHover();
         return;
 
         void OnGestureFinished(object? sender, EventArgs e)
@@ -287,7 +297,18 @@ public class SelectAndMove : ItemsControl
         _transformRoot = e.NameScope.Find<Visual>(TransformRootName);
         RaisePropertyChanged(TransformRootProperty, this, _transformRoot!);
         
-        _selectionGestureLayer = e.NameScope.Find<Canvas>(SelectionGestureLayer);
+        _selectionGestureLayer = e.NameScope.Find<Canvas>(SelectionGestureOverlayName);
+
+        foreach (var gesture in SelectionGestures)
+        {
+            SelectionGestureRemoved(gesture);
+        }
+        
+        _gestureBackground = e.NameScope.Find<InputElement>(BackgroundGestureTargetName);
+        foreach (var gesture in SelectionGestures)
+        {
+            SelectionGestureAdded(gesture);
+        }
     }
 
     private void OnScroll(ScrollGestureEventArgs args)
@@ -302,12 +323,6 @@ public class SelectAndMove : ItemsControl
     private void OnScrollEnded(ScrollGestureEndedEventArgs _)
     {
         PseudoClasses.Remove(IsPanningPseudoclass);
-    }
-
-    protected override void OnPointerPressed(PointerPressedEventArgs e)
-    {
-        base.OnPointerPressed(e);
-        
     }
 
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
@@ -473,6 +488,59 @@ public class SelectAndMove : ItemsControl
                 yield return child;
             }
         }
+    }
+    
+    private void OnSelectionGesturesChanged(AvaloniaPropertyChangedEventArgs args)
+    {
+        var (oldValue, newValue) = args.GetOldAndNewValue<SelectionGestureCollection?>();
+        if (oldValue is not null)
+        {
+            oldValue.CollectionChanged -= SelectionGesturesCollectionChanged;
+            foreach (var selectionRecognizer in oldValue)
+            {
+                SelectionGestureRemoved(selectionRecognizer);
+            }
+        }
+
+        if (newValue is not null)
+        {
+            newValue.CollectionChanged += SelectionGesturesCollectionChanged;
+            foreach (var selectionRecognizer in newValue)
+            {
+                SelectionGestureAdded(selectionRecognizer);
+            }
+        }
+    }
+
+    private void SelectionGesturesCollectionChanged(object? sender, NotifyCollectionChangedEventArgs args)
+    {
+        if (args.NewItems is not null)
+        {
+            foreach (var item in args.NewItems.Cast<SelectingGestureRecognizer>())
+            {
+                SelectionGestureAdded(item);
+            }
+        }
+
+        if (args.OldItems is not null)
+        {
+            foreach (var item in args.OldItems.Cast<SelectingGestureRecognizer>())
+            {
+                SelectionGestureRemoved(item);
+            }
+        }
+    }
+
+    private void SelectionGestureAdded(SelectingGestureRecognizer recognizer)
+    {
+        recognizer.DrawingCanvas = _selectionGestureLayer;
+        _gestureBackground?.GestureRecognizers.Add(recognizer);
+    }
+
+    private void SelectionGestureRemoved(SelectingGestureRecognizer recognizer)
+    {
+        recognizer.DrawingCanvas = null;
+        _gestureBackground?.GestureRecognizers.Remove(recognizer);
     }
     
     private readonly struct ChangeTransformScope : IDisposable

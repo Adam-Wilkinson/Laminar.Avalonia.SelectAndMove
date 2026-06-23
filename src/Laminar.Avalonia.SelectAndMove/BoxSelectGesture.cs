@@ -8,13 +8,17 @@ namespace Laminar.Avalonia.SelectAndMove;
 
 public class BoxSelectGesture : SelectingGestureRecognizer
 {
-    public static readonly AttachedProperty<ITemplate<Rectangle?>?> SelectionBoxTemplateProperty = AvaloniaProperty.RegisterAttached<BoxSelectGesture, StyledElement, ITemplate<Rectangle?>?>("SelectionBox");
-    public static ITemplate<Rectangle?>? GetSelectionBoxTemplate(StyledElement visual) => visual.GetValue(SelectionBoxTemplateProperty);
-    public static void SetSelectionBoxTemplate(StyledElement visual, ITemplate<Rectangle?>? value) => visual.SetValue(SelectionBoxTemplateProperty, value);
+    public static readonly StyledProperty<ITemplate<Rectangle?>?> SelectionBoxTemplateProperty = AvaloniaProperty.Register<BoxSelectGesture, ITemplate<Rectangle?>?>("SelectionBox");
     
     private PointerEventArgs? _originalClick;
     private Rectangle _selectionBox;
     private bool _selectionBoxAdded;
+
+    public ITemplate<Rectangle?>? SelectionBoxTemplate
+    {
+        get => GetValue(SelectionBoxTemplateProperty);
+        set => SetValue(SelectionBoxTemplateProperty, value);
+    }
     
     static BoxSelectGesture()
     {
@@ -23,7 +27,7 @@ public class BoxSelectGesture : SelectingGestureRecognizer
 
     public BoxSelectGesture()
     {
-        _selectionBox = GetSelectionBoxTemplate(this)?.Build() ?? new Rectangle
+        _selectionBox = SelectionBoxTemplate?.Build() ?? new Rectangle
         {
             Stroke = Brushes.Red,
             StrokeThickness = 3

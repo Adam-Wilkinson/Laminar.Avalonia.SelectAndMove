@@ -297,6 +297,13 @@
 				<Setter Property="Background" Value="Gray"/>
 				<Setter Property="Margin" Value="-20,20"/>
 			</Style>
+			
+			<Style Selector="sam|SelectAndMoveItem:dragging > Ellipse">
+				<Setter Property="Effect">
+					<DropShadowEffect OffsetX="3" OffsetY="3"
+					                  BlurRadius="5" Color="Black" Opacity="0.5" />
+				</Setter>
+			</Style>
 		</Styles>
 	</Window.Styles>
 </Window>

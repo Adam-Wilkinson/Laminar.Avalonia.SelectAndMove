@@ -11,7 +11,7 @@ using Avalonia.Reactive;
 
 namespace Laminar.Avalonia.SelectAndMove;
 
-[PseudoClasses(":selected")]
+[PseudoClasses(":selected", ":dragging")]
 public class SelectAndMoveItem : ContentControl, ISelectable
 {
     public static readonly StyledProperty<bool> IsSelectedProperty = SelectingItemsControl.IsSelectedProperty.AddOwner<ListBoxItem>();
@@ -50,6 +50,11 @@ public class SelectAndMoveItem : ContentControl, ISelectable
     {
         get => GetValue(TopProperty);
         set => SetValue(TopProperty, value);
+    }
+
+    internal void SetIsDragging(bool isDragging)
+    {
+        PseudoClasses.Set(":dragging", isDragging);
     }
     
     protected override void OnAttachedToLogicalTree(LogicalTreeAttachmentEventArgs e)

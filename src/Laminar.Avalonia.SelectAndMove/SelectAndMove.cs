@@ -387,7 +387,7 @@ public class SelectAndMove : ItemsControl
     
     protected override bool NeedsContainerOverride(object? item, int index, out object? recycleKey)
     {
-        return NeedsContainer<TreeViewItem>(item, out recycleKey);
+        return NeedsContainer<SelectAndMoveItem>(item, out recycleKey);
     }
     
     protected override Control CreateContainerForItemOverride(object? item, int index, object? recycleKey)

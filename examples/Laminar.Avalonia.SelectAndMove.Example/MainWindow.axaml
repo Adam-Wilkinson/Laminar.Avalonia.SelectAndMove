@@ -127,7 +127,16 @@
 					<Button.CommandParameter>
 						<sam:BoxSelectGesture/>
 					</Button.CommandParameter>
-					Begin Box Select
+					Box Select
+				</Button>
+				
+				<Button HorizontalAlignment="Stretch"
+				        HorizontalContentAlignment="Center"
+				        Command="{Binding #ExampleSelectAndMove.ActivateSelectionGesture}">
+					<Button.CommandParameter>
+						<sam:CircleSelectGesture/>
+					</Button.CommandParameter>
+					Circle Select
 				</Button>
 			</UniformGrid>
 			

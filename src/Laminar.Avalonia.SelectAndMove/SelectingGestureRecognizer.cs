@@ -35,7 +35,9 @@ public abstract class SelectingGestureRecognizer : GestureRecognizer
         get => field ??= Target as Canvas;
         set;
     }
-    
+
+    protected bool AutoDeselectDuringGesture { get; set; } = true;
+
     public void BeginHover()
     {
         _beginGestureRequested = true;
@@ -101,7 +103,7 @@ public abstract class SelectingGestureRecognizer : GestureRecognizer
             return;
         }
         
-        EnsurePointerCaptured(e.Pointer);
+        EnsureSelectionInitialized(e);
         
         if (CreateUpdatedSelectionGeometry(e) is not { } selectionGeometry)
         {
@@ -110,9 +112,9 @@ public abstract class SelectingGestureRecognizer : GestureRecognizer
 
         if (selectionGeometry.Bounds.Width == 0 || selectionGeometry.Bounds.Height == 0) return;
         
-        if (e.KeyModifiers != SelectAndMove.GetSelectManyKeyModifiers(this))
+        if (AutoDeselectDuringGesture && e.KeyModifiers != SelectAndMove.GetSelectManyKeyModifiers(this))
         {
-            Selection.ClearSiblingSelection(target);
+            Selection.ClearSiblingSelection((InputElement)Target!);
         }
         
         foreach (var element in Selection.GetSiblings(target)?
@@ -148,8 +150,18 @@ public abstract class SelectingGestureRecognizer : GestureRecognizer
             return false;
         }
 
+        if (!AutoDeselectDuringGesture && Selection.GetIsSelected(control))
+        {
+            return true;
+        }
+        
         selectionGeometry.Transform = new MatrixTransform(visualTarget.TransformToVisual(control)!.Value);
         var controlGeometry = GetIntersectionGeometry(control);
+        if (!selectionGeometry.Bounds.Intersects(controlGeometry.Bounds))
+        {
+            return false;
+        }
+        
         Geometry intersection = new CombinedGeometry(GeometryCombineMode.Intersect, selectionGeometry, controlGeometry);
         return intersection.Bounds.Width > 0 || intersection.Bounds.Height > 0;
     }
@@ -194,12 +206,18 @@ public abstract class SelectingGestureRecognizer : GestureRecognizer
         return null;
     }
 
-    private void EnsurePointerCaptured(IPointer pointer)
+    private void EnsureSelectionInitialized(PointerEventArgs e)
     {
+        var pointer = e.Pointer;
         if (Equals(_capturedPointer, pointer)) return;
 
         _capturedPointer?.Capture(null);
         Capture(pointer);
         _capturedPointer = pointer;
+        
+        if (e.KeyModifiers != SelectAndMove.GetSelectManyKeyModifiers(this))
+        {
+            Selection.ClearSiblingSelection((InputElement)Target!);
+        }
     }
 }

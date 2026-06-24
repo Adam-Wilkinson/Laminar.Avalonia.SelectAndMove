@@ -7,24 +7,24 @@ using Avalonia.Media;
 
 namespace Laminar.Avalonia.SelectAndMove;
 
-public class CircleSelectGesture : SelectingGestureRecognizer
+public class PaintSelectGesture : SelectingGestureRecognizer
 {
-    public static readonly StyledProperty<double> CircleRadiusProperty = AvaloniaProperty.Register<CircleSelectGesture, double>(nameof(CircleRadius), 50);
+    public static readonly StyledProperty<double> CircleRadiusProperty = AvaloniaProperty.Register<PaintSelectGesture, double>(nameof(CircleRadius), 50);
     
-    public static readonly AttachedProperty<ITemplate<Ellipse?>?> CircleDisplayTemplateProperty = AvaloniaProperty.RegisterAttached<BoxSelectGesture, StyledElement, ITemplate<Ellipse?>?>(nameof(CircleDisplayTemplate), inherits: true);
-    public static ITemplate<Ellipse?>? GetCircleDisplayTemplate(StyledElement element) => element.GetValue(CircleDisplayTemplateProperty);
-    public static void SetCircleDisplayTemplate(StyledElement element, ITemplate<Ellipse?>? template) => element.SetValue(CircleDisplayTemplateProperty, template);
+    public static readonly AttachedProperty<ITemplate<Ellipse?>?> IndicatorCircleTemplateProperty = AvaloniaProperty.RegisterAttached<BoxSelectGesture, StyledElement, ITemplate<Ellipse?>?>(nameof(IndicatorCircleTemplate), inherits: true);
+    public static ITemplate<Ellipse?>? GetIndicatorCircleTemplate(StyledElement element) => element.GetValue(IndicatorCircleTemplateProperty);
+    public static void SetIndicatorCircleTemplate(StyledElement element, ITemplate<Ellipse?>? template) => element.SetValue(IndicatorCircleTemplateProperty, template);
     
     private Ellipse _indicatorCircle;
     private bool _hoverInitialized;
 
-    static CircleSelectGesture()
+    static PaintSelectGesture()
     {
-        CircleDisplayTemplateProperty.Changed.AddClassHandler<CircleSelectGesture>((g, _) => g.OnCircleDisplayTemplateChanged());
-        CircleRadiusProperty.Changed.AddClassHandler<CircleSelectGesture>((g, e) => g.OnCircleRadiusChanged(e));
+        IndicatorCircleTemplateProperty.Changed.AddClassHandler<PaintSelectGesture>((g, _) => g.OnCircleDisplayTemplateChanged());
+        CircleRadiusProperty.Changed.AddClassHandler<PaintSelectGesture>((g, e) => g.OnCircleRadiusChanged(e));
     }
 
-    public CircleSelectGesture()
+    public PaintSelectGesture()
     {
         _indicatorCircle = null!;
         OnCircleDisplayTemplateChanged();
@@ -37,10 +37,10 @@ public class CircleSelectGesture : SelectingGestureRecognizer
         set => SetValue(CircleRadiusProperty, value);
     }
 
-    public ITemplate<Ellipse?>? CircleDisplayTemplate
+    public ITemplate<Ellipse?>? IndicatorCircleTemplate
     {
-        get => GetValue(CircleDisplayTemplateProperty);
-        set => SetValue(CircleDisplayTemplateProperty, value);
+        get => GetValue(IndicatorCircleTemplateProperty);
+        set => SetValue(IndicatorCircleTemplateProperty, value);
     }
 
     protected override void OnHoverMove(PointerEventArgs e)
@@ -78,7 +78,7 @@ public class CircleSelectGesture : SelectingGestureRecognizer
 
     private void OnCircleDisplayTemplateChanged()
     {
-        _indicatorCircle = CircleDisplayTemplate?.Build() ?? new Ellipse
+        _indicatorCircle = IndicatorCircleTemplate?.Build() ?? new Ellipse
         {
             Width = CircleRadius * 2,
             Height = CircleRadius * 2,

@@ -134,9 +134,9 @@
 				        HorizontalContentAlignment="Center"
 				        Command="{Binding #ExampleSelectAndMove.ActivateSelectionGesture}">
 					<Button.CommandParameter>
-						<sam:CircleSelectGesture/>
+						<sam:PaintSelectGesture/>
 					</Button.CommandParameter>
-					Circle Select
+					Paint Select
 				</Button>
 			</UniformGrid>
 			

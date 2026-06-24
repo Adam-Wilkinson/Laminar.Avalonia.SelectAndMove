@@ -75,6 +75,7 @@ public abstract class SelectingGestureRecognizer : GestureRecognizer
         // Right click = cancel gesture
         if (e.Properties.PointerUpdateKind.GetMouseButton() == MouseButton.Right)
         {
+            Cleanup();
             OnGestureFinished?.Invoke(this, EventArgs.Empty);
             _beginGestureRequested = false;
         }

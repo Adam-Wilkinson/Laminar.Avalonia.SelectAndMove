@@ -39,18 +39,21 @@ public class BoxSelectGesture : SelectingGestureRecognizer
     {
         base.OnBeginGesture(e);
         _originalClickPoint = e.GetPosition(DrawingCanvas);
+        UpdateSelectionBox(e);
         DrawingCanvas?.Children.Add(_selectionBox);
     }
 
-    protected override Geometry? CreateUpdatedSelectionGeometry(PointerEventArgs mostRecentArgs)
+    protected override Geometry? CreateUpdatedSelectionGeometry(PointerEventArgs mostRecentArgs) 
+        => new RectangleGeometry(UpdateSelectionBox(mostRecentArgs));
+
+    private Rect UpdateSelectionBox(PointerEventArgs e)
     {
-        Rect drawnRect = new Rect(_originalClickPoint, mostRecentArgs.GetPosition(DrawingCanvas)).Normalize();
+        Rect drawnRect = new Rect(_originalClickPoint, e.GetPosition(DrawingCanvas)).Normalize();
         Canvas.SetLeft(_selectionBox, drawnRect.Left);
         Canvas.SetTop(_selectionBox, drawnRect.Top);
         _selectionBox.Width = drawnRect.Width;
         _selectionBox.Height = drawnRect.Height;
-
-        return new RectangleGeometry(drawnRect);
+        return drawnRect;
     }
 
     protected override void Cleanup()

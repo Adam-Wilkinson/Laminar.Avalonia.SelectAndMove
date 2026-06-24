@@ -186,8 +186,6 @@
 			           sam:ZIndexLayerManger.ZIndexLayer="-1"
 			           Text="Another background element"/>
 			
-			<Path Canvas.Left="700" Canvas.Top="100" ClipToBounds="False" Stroke="Black" StrokeThickness="2" Data="M0,0 C0,15 30,15 30,0 C30,-15 0,-15 0,0 M8,11 C0,23 25,20 25,15 M6,11 C6,14 10,14 10,11 C10,7 6,7 6,11"/>
-			
 			<TextBlock
 				Name="Unselectable"
 				Canvas.Left="10"

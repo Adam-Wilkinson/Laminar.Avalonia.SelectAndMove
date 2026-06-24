@@ -232,6 +232,11 @@ public class SelectAndMove : ItemsControl
     public void ActivateSelectionGesture(SelectingGestureRecognizer selectingGesture)
     {
         if (_selectionGestureLayer is null) throw new InvalidOperationException();
+
+        while (_selectionGestureLayer.GestureRecognizers.Count > 0)
+        {
+            _selectionGestureLayer.GestureRecognizers.Remove(_selectionGestureLayer.GestureRecognizers.First());
+        }
         
         _selectionGestureLayer.GestureRecognizers.Add(selectingGesture);
         _selectionGestureLayer.IsHitTestVisible = true;
@@ -241,7 +246,6 @@ public class SelectAndMove : ItemsControl
 
         void OnGestureFinished(object? sender, EventArgs e)
         {
-            _selectionGestureLayer.GestureRecognizers.Remove(selectingGesture);
             _selectionGestureLayer.IsHitTestVisible = false;
             selectingGesture.OnGestureFinished -= OnGestureFinished;
         }

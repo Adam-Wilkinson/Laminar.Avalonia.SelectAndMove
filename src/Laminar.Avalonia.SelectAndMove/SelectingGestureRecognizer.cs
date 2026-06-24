@@ -11,18 +11,20 @@ namespace Laminar.Avalonia.SelectAndMove;
 public abstract class SelectingGestureRecognizer : GestureRecognizer
 {
     private const double MinimumSquaredMoveDistance = 40;
+
+    public static readonly StyledProperty<ITemplate<Control>?> CursorDecorationTemplateProperty = AvaloniaProperty.Register<SelectingGestureRecognizer, ITemplate<Control>?>(nameof(CursorDecorationTemplate));
     
-    public static readonly AttachedProperty<MouseButton> TriggerSelectionMouseButtonProperty = AvaloniaProperty.RegisterAttached<BoxSelectGesture, StyledElement, MouseButton>("TriggerSelectionMouseButton", MouseButton.Left);
-    public static MouseButton GetTriggerSelectionMouseButton(StyledElement visual) => visual.GetValue(TriggerSelectionMouseButtonProperty);
-    public static void SetTriggerSelectionMouseButton(StyledElement visual, MouseButton value) => visual.SetValue(TriggerSelectionMouseButtonProperty, value);
+    public static readonly StyledProperty<MouseButton> TriggerSelectionMouseButtonProperty = AvaloniaProperty.Register<SelectingGestureRecognizer, MouseButton>(nameof(TriggerSelectionMouseButton));
 
     public static readonly AttachedProperty<Shape?> IntersectionShapeProperty = AvaloniaProperty.RegisterAttached<BoxSelectGesture, StyledElement, Shape?>("IntersectionShape");
     public static Shape? GetIntersectionShape(StyledElement visual) => visual.GetValue(IntersectionShapeProperty);
     public static void SetIntersectionShape(StyledElement visual, Shape? value) => visual.SetValue(IntersectionShapeProperty, value);
     
     private PointerEventArgs? _originalClick;
+    private Control? _cursorDecoration;
     private IPointer? _capturedPointer;
     private bool _beginGestureRequested;
+    private bool _hoverStarted;
 
     public MouseButton TriggerSelectionMouseButton
     {
@@ -30,6 +32,12 @@ public abstract class SelectingGestureRecognizer : GestureRecognizer
         set => SetValue(TriggerSelectionMouseButtonProperty, value);
     }
 
+    public ITemplate<Control>? CursorDecorationTemplate
+    {
+        get => GetValue(CursorDecorationTemplateProperty);
+        set => SetValue(CursorDecorationTemplateProperty, value);
+    }
+    
     protected internal Canvas? DrawingCanvas
     {
         get => field ??= Target as Canvas;
@@ -46,6 +54,7 @@ public abstract class SelectingGestureRecognizer : GestureRecognizer
     public void BeginGesture(PointerEventArgs e)
     {
         _originalClick = e;
+        OnBeginGesture(e);
     }
     
     public bool PointerPressShouldTriggerGesture(PointerPressedEventArgs e)
@@ -56,17 +65,37 @@ public abstract class SelectingGestureRecognizer : GestureRecognizer
         }
         
         return e is { Pointer: Pointer { IsGestureRecognitionSkipped: false, Type: PointerType.Mouse }, Handled: false }
-               && e.Properties.PointerUpdateKind.GetMouseButton() == GetTriggerSelectionMouseButton(this);
+               && e.Properties.PointerUpdateKind.GetMouseButton() == TriggerSelectionMouseButton;
     }
 
     public event EventHandler? OnGestureFinished;
-
+    
+    protected virtual void OnHoverStart(PointerEventArgs e)
+    {
+        if (CursorDecorationTemplate is not null)
+        {
+            _cursorDecoration = CursorDecorationTemplate.Build();
+            DrawingCanvas?.Children.Add(_cursorDecoration);
+        }
+    }
+    
+    protected virtual void OnHoverMove(PointerEventArgs e)
+    {
+        if (_cursorDecoration is not null)
+        {
+            var pos = e.GetPosition(DrawingCanvas);
+            Canvas.SetLeft(_cursorDecoration, pos.X - _cursorDecoration.Bounds.Width);
+            Canvas.SetTop(_cursorDecoration, pos.Y + _cursorDecoration.Bounds.Height);
+        }
+    }
+    
+    protected virtual void OnBeginGesture(PointerEventArgs e)
+    {
+    }
     
     protected abstract Geometry? CreateUpdatedSelectionGeometry(PointerEventArgs mostRecentArgs);
 
-    protected abstract void Cleanup();
-
-    protected virtual void OnHoverMove(PointerEventArgs e)
+    protected virtual void Cleanup()
     {
     }
 
@@ -90,6 +119,12 @@ public abstract class SelectingGestureRecognizer : GestureRecognizer
     {
         if (_beginGestureRequested)
         {
+            if (!_hoverStarted)
+            {
+                OnHoverStart(e);
+                _hoverStarted = true;
+            }
+            
             OnHoverMove(e);
         }
         
@@ -140,6 +175,12 @@ public abstract class SelectingGestureRecognizer : GestureRecognizer
         _capturedPointer = null;
         _originalClick = null;
         _beginGestureRequested = false;
+        _hoverStarted = false;
+        if (_cursorDecoration is not null)
+        {
+            DrawingCanvas?.Children.Remove(_cursorDecoration);
+            _cursorDecoration = null;
+        }
         Cleanup();
         OnGestureFinished?.Invoke(this, EventArgs.Empty);
     }

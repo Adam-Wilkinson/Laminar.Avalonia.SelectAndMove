@@ -7,7 +7,9 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Templates;
 using Avalonia.Data;
 using Avalonia.Input;
+using Avalonia.Input.GestureRecognizers;
 using Avalonia.Interactivity;
+using Avalonia.LogicalTree;
 using Avalonia.Markup.Xaml.Styling;
 using Avalonia.Media;
 using Avalonia.VisualTree;
@@ -534,6 +536,11 @@ public class SelectAndMove : ItemsControl
     private void SelectionGestureAdded(SelectingGestureRecognizer recognizer)
     {
         recognizer.DrawingCanvas = _selectionGestureLayer;
+        if (recognizer.Parent is not null)
+        {
+            throw new InvalidOperationException("The gesture recognizer already has a parent");
+        }
+        
         _gestureBackground?.GestureRecognizers.Add(recognizer);
     }
 

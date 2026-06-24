@@ -12,9 +12,8 @@ public class BoxSelectGesture : SelectingGestureRecognizer
     public static ITemplate<Rectangle?>? GetSelectionBoxTemplate(StyledElement element) => element.GetValue(SelectionBoxTemplateProperty);
     public static void SetSelectionBoxTemplate(StyledElement element, ITemplate<Rectangle?>? template) => element.SetValue(SelectionBoxTemplateProperty, template);
     
-    private PointerEventArgs? _originalClick;
+    private Point _originalClickPoint;
     private Rectangle _selectionBox;
-    private bool _selectionBoxAdded;
 
     public ITemplate<Rectangle?>? SelectionBoxTemplate
     {
@@ -36,34 +35,29 @@ public class BoxSelectGesture : SelectingGestureRecognizer
         };
     }
 
+    protected override void OnBeginGesture(PointerEventArgs e)
+    {
+        base.OnBeginGesture(e);
+        _originalClickPoint = e.GetPosition(DrawingCanvas);
+        DrawingCanvas?.Children.Add(_selectionBox);
+    }
+
     protected override Geometry? CreateUpdatedSelectionGeometry(PointerEventArgs mostRecentArgs)
     {
-        if (_originalClick is null)
-        {
-            _originalClick = mostRecentArgs;
-            return null;
-        }
-        
-        Rect drawnRect = new Rect(_originalClick.GetPosition(DrawingCanvas), mostRecentArgs.GetPosition(DrawingCanvas)).Normalize();
+        Rect drawnRect = new Rect(_originalClickPoint, mostRecentArgs.GetPosition(DrawingCanvas)).Normalize();
         Canvas.SetLeft(_selectionBox, drawnRect.Left);
         Canvas.SetTop(_selectionBox, drawnRect.Top);
         _selectionBox.Width = drawnRect.Width;
         _selectionBox.Height = drawnRect.Height;
-
-        if (!_selectionBoxAdded)
-        {
-            _selectionBoxAdded = true;
-            DrawingCanvas?.Children.Add(_selectionBox);
-        }
 
         return new RectangleGeometry(drawnRect);
     }
 
     protected override void Cleanup()
     {
-        _originalClick = null;
+        base.Cleanup();
+        _originalClickPoint = new Point(double.NaN, double.NaN);
         DrawingCanvas?.Children.Remove(_selectionBox);
-        _selectionBoxAdded = false;
     }
 
     private void SelectionBoxChanged(AvaloniaPropertyChangedEventArgs args)

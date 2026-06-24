@@ -120,7 +120,7 @@
 				</Button.CommandParameter>
 			</Button>
 			
-			<UniformGrid Rows="0" HorizontalAlignment="Stretch">
+			<UniformGrid Rows="1" HorizontalAlignment="Stretch" Name="SelectionTools">
 				<Button HorizontalAlignment="Stretch" 
 				        HorizontalContentAlignment="Center"
 				        Command="{Binding #ExampleSelectAndMove.ActivateSelectionGesture}">
@@ -138,12 +138,21 @@
 					</Button.CommandParameter>
 					Paint Select
 				</Button>
+				
+				<Button HorizontalAlignment="Stretch"
+				        HorizontalContentAlignment="Center"
+				        Command="{Binding #ExampleSelectAndMove.ActivateSelectionGesture}">
+					<Button.CommandParameter>
+						<sam:LassoSelectGesture/>
+					</Button.CommandParameter>
+					Lasso Select
+				</Button>
 			</UniformGrid>
 			
 			<TextBlock	
 				Padding="5"
 				Text="Selected Controls:"/>
-			<ListBox ItemsSource="{Binding #ExampleSelectAndMove.(sam:Selection.SelectedElements)}">
+			<ListBox ItemsSource="{Binding #ExampleSelectAndMove.Selection}">
 				<ListBox.ItemTemplate>
 					<DataTemplate DataType="Control">
 						<TextBlock Text="{Binding Name}"/>
@@ -176,6 +185,8 @@
 			           Padding="10"
 			           sam:ZIndexLayerManger.ZIndexLayer="-1"
 			           Text="Another background element"/>
+			
+			<Path Canvas.Left="700" Canvas.Top="100" ClipToBounds="False" Stroke="Black" StrokeThickness="2" Data="M0,0 C0,15 30,15 30,0 C30,-15 0,-15 0,0 M8,11 C0,23 25,20 25,15 M6,11 C6,14 10,14 10,11 C10,7 6,7 6,11"/>
 			
 			<TextBlock
 				Name="Unselectable"

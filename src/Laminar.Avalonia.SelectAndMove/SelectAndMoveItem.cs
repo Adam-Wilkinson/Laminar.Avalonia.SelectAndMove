@@ -26,6 +26,7 @@ public class SelectAndMoveItem : ContentControl, ISelectable
     static SelectAndMoveItem()
     {
         SelectableMixin.Attach<SelectAndMoveItem>(IsSelectedProperty);
+        ClipToBoundsProperty.OverrideDefaultValue<SelectAndMoveItem>(false);
     }
 
     public SelectAndMoveItem()

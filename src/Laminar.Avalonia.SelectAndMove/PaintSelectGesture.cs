@@ -16,7 +16,6 @@ public class PaintSelectGesture : SelectingGestureRecognizer
     public static void SetIndicatorCircleTemplate(StyledElement element, ITemplate<Ellipse?>? template) => element.SetValue(IndicatorCircleTemplateProperty, template);
     
     private Ellipse _indicatorCircle;
-    private bool _hoverInitialized;
 
     static PaintSelectGesture()
     {
@@ -43,15 +42,18 @@ public class PaintSelectGesture : SelectingGestureRecognizer
         set => SetValue(IndicatorCircleTemplateProperty, value);
     }
 
+    protected override void OnHoverStart(PointerEventArgs e)
+    {
+        base.OnHoverStart(e);
+        Canvas.SetLeft(_indicatorCircle, e.GetPosition(DrawingCanvas).X - CircleRadius);
+        Canvas.SetTop(_indicatorCircle, e.GetPosition(DrawingCanvas).Y - CircleRadius);
+        DrawingCanvas?.Children.Add(_indicatorCircle);
+        DrawingCanvas?.PointerWheelChanged += DrawingCanvasOnPointerWheelChanged;
+    }
+
     protected override void OnHoverMove(PointerEventArgs e)
     {
-        if (!_hoverInitialized)
-        {
-            _hoverInitialized = true;
-            DrawingCanvas?.Children.Add(_indicatorCircle);
-            DrawingCanvas?.PointerWheelChanged += DrawingCanvasOnPointerWheelChanged;
-        }
-        
+        base.OnHoverMove(e);
         Canvas.SetLeft(_indicatorCircle, e.GetPosition(DrawingCanvas).X - CircleRadius);
         Canvas.SetTop(_indicatorCircle, e.GetPosition(DrawingCanvas).Y - CircleRadius);
     }
@@ -71,9 +73,9 @@ public class PaintSelectGesture : SelectingGestureRecognizer
 
     protected override void Cleanup()
     {
+        base.Cleanup();
         DrawingCanvas?.Children.Remove(_indicatorCircle);
         DrawingCanvas?.PointerWheelChanged -= DrawingCanvasOnPointerWheelChanged;
-        _hoverInitialized = false;
     }
 
     private void OnCircleDisplayTemplateChanged()

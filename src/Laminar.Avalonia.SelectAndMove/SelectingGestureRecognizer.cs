@@ -167,6 +167,11 @@ public abstract class SelectingGestureRecognizer : GestureRecognizer
 
     protected override void PointerReleased(PointerReleasedEventArgs e)
     {
+        if (_hoverStarted)
+        {
+            e.Handled = true;
+        }
+        
         EndGesture();
     }
 

@@ -392,7 +392,15 @@ public class SelectAndMove : ItemsControl
     
     protected override Control CreateContainerForItemOverride(object? item, int index, object? recycleKey)
     {
-        return new SelectAndMoveItem();
+        var newContainer = new SelectAndMoveItem();
+        
+        if (item is ILogical { LogicalParent: not null } and ISetLogicalParent setLogicalParent)
+        {
+            setLogicalParent.SetParent(null);
+            setLogicalParent.SetParent(newContainer);
+        }
+        
+        return newContainer;
     }
 
     protected override void PrepareContainerForItemOverride(Control container, object? item, int index)
@@ -540,12 +548,25 @@ public class SelectAndMove : ItemsControl
     private void SelectionGestureAdded(SelectingGestureRecognizer recognizer)
     {
         recognizer.DrawingCanvas = _selectionGestureLayer;
-        if (recognizer.Parent is not null)
+        if (recognizer.Parent is null)
         {
-            throw new InvalidOperationException("The gesture recognizer already has a parent");
+            _gestureBackground?.GestureRecognizers.Add(recognizer);
+            return;
+        }
+
+        if (_gestureBackground?.GestureRecognizers.Contains(recognizer) == true)
+        {
+            return;
+        }
+
+        if (recognizer.Parent is InputElement parentElement && parentElement.GestureRecognizers.Contains(recognizer))
+        {
+            parentElement.GestureRecognizers.Remove(recognizer);
+            _gestureBackground?.GestureRecognizers.Add(recognizer);
+            return;
         }
         
-        _gestureBackground?.GestureRecognizers.Add(recognizer);
+        throw new InvalidOperationException("The gesture recognizer already has a parent. Unable to add it to the gesture background");
     }
 
     private void SelectionGestureRemoved(SelectingGestureRecognizer recognizer)

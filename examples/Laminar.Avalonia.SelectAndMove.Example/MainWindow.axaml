@@ -171,6 +171,7 @@
 			</sam:BoxSelectGesture.SelectionBoxTemplate>
 			
 			<TextBlock Name="BackgroundOne"
+			           Classes="DropShadowOnDrag"
 			           Canvas.Left="500"
 			           Canvas.Top="300"
 			           Background="Black"
@@ -179,6 +180,7 @@
 			           Text="A background element"/>
 			
 			<TextBlock Name="BackgroundTwo"
+			           Classes="DropShadowOnDrag"
 			           Canvas.Left="500"
 			           Canvas.Top="200"
 			           Background="Black"
@@ -198,6 +200,7 @@
 			
 			<Rectangle
 				Name="Rectangle"
+				Classes="DropShadowOnDrag"
 				Canvas.Left="100"
 				Canvas.Top="200"
 				Width="50"
@@ -206,6 +209,7 @@
 			
 			<Ellipse
 				Name="Ellipse"
+				Classes="DropShadowOnDrag"
 				Width="100"
 				Height="200"
 				Canvas.Top="50"
@@ -220,6 +224,7 @@
 				
 				<Ellipse
 					Name="EllipseWithTextIntersectTarget"
+					Classes="DropShadowOnDrag"
 					Width="250"
 					Height="50"/>
 				
@@ -242,6 +247,7 @@
 			
 			<TextBlock
 				Name="InterestingSelection"
+				Classes="DropShadowOnDrag"
 				Canvas.Left="200"
 				Canvas.Top="0"
 				Padding="10"
@@ -250,6 +256,7 @@
 				Text="You can change any styled property on selection"/>
 			
 			<StackPanel Name="HasSlider"
+			            Classes="DropShadowOnDrag"
 			            Canvas.Left="400"
 						Canvas.Top="200"
 						Background="Maroon">
@@ -263,46 +270,38 @@
 
 	<Window.Styles>
 		<Styles>
-			<Style Selector=":is(Shape)[(sam|Selection.IsSelected)=True]">
+			<Style Selector="sam|SelectAndMoveItem:selected :is(Shape)">
 				<Setter Property="Stroke" Value="Red"/>
 				<Setter Property="StrokeThickness" Value="3"/>				
 			</Style>
 			
-			<Style Selector="TextBlock#Unmovable">
-				<Setter Property="Opacity" Value="1.0"/>
-				
-				<Style Selector="^[(sam|Selection.IsSelected)=True]">
-					<Setter Property="Opacity" Value="0.6"/>
-				</Style>
+			<Style Selector="sam|SelectAndMoveItem:selected > TextBlock#Unmovable">
+				<Setter Property="Opacity" Value="0.6"/>
 			</Style>
 			
-			<Style Selector="TextBlock#InterestingSelection">
-				<Setter Property="Foreground" Value="{DynamicResource ThemeForegroundBrush}"/>
-				
-				<Style Selector="^[(sam|Selection.IsSelected)=True]">
-					<Setter Property="Foreground" Value="Gray"/>
-				</Style>
+			<Style Selector="sam|SelectAndMoveItem:selected > TextBlock#InterestingSelection">
+				<Setter Property="Foreground" Value="Gray"/>
 			</Style>
 			
-			<Style Selector="Panel#EllipseWithText Ellipse">
+			<Style Selector="sam|SelectAndMoveItem > Panel#EllipseWithText > Ellipse">
 				<Setter Property="Fill" Value="Olive"/>
-				
-				<Style Selector="^[(sam|Selection.IsSelected)=True]">
-					<Setter Property="Fill" Value="DarkCyan"/>
-				</Style>
 			</Style>
-
+			
+			<Style Selector="sam|SelectAndMoveItem:selected > Panel#EllipseWithText > Ellipse">
+				<Setter Property="Fill" Value="DarkCyan"/>
+			</Style>
+			
+			<Style Selector="sam|SelectAndMoveItem:dragging :is(Control).DropShadowOnDrag, sam|SelectAndMoveItem:dragging TextBlock.DropShadowOnDrag /template/ ContentPresenter">
+				<Setter Property="Effect">
+					<DropShadowEffect OffsetX="3" OffsetY="3"
+					                  BlurRadius="10" Color="Black" Opacity="1" />
+				</Setter>
+			</Style>
+			
 			<Style Selector=":is(Separator)">
 				<Setter Property="Height" Value="3"/>
 				<Setter Property="Background" Value="Gray"/>
 				<Setter Property="Margin" Value="-20,20"/>
-			</Style>
-			
-			<Style Selector="sam|SelectAndMoveItem:dragging > Ellipse">
-				<Setter Property="Effect">
-					<DropShadowEffect OffsetX="3" OffsetY="3"
-					                  BlurRadius="5" Color="Black" Opacity="0.5" />
-				</Setter>
 			</Style>
 		</Styles>
 	</Window.Styles>

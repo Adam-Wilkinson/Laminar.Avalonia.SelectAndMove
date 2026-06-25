@@ -1,4 +1,6 @@
 using Avalonia.Collections;
+using Avalonia.Controls;
+using Avalonia.Controls.Selection;
 using Avalonia.Input;
 
 namespace Laminar.Avalonia.SelectAndMove;

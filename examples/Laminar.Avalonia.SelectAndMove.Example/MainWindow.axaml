@@ -152,7 +152,7 @@
 			<TextBlock	
 				Padding="5"
 				Text="Selected Controls:"/>
-			<ListBox ItemsSource="{Binding #ExampleSelectAndMove.Selection}">
+			<ListBox ItemsSource="{Binding #ExampleSelectAndMove.SelectionModel.SelectedItems}">
 				<ListBox.ItemTemplate>
 					<DataTemplate DataType="Control">
 						<TextBlock Text="{Binding Name}"/>
@@ -188,15 +188,16 @@
 			           sam:ZIndexLayerManger.ZIndexLayer="-1"
 			           Text="Another background element"/>
 			
-			<TextBlock
-				Name="Unselectable"
-				Canvas.Left="10"
-				Canvas.Top="30"
-				Background="Chocolate"
-				Padding="10"
-				sam:Selection.IsSelectable="False"
-				FontWeight="Bold"
-				Text="This can't be selected"/>
+			<sam:SelectAndMoveItem IsSelectable="False">
+				<TextBlock
+					Name="Unselectable"
+					Canvas.Left="10"
+					Canvas.Top="30"
+					Background="Chocolate"
+					Padding="10"
+					FontWeight="Bold"
+					Text="This can't be selected"/>
+			</sam:SelectAndMoveItem>
 			
 			<Rectangle
 				Name="Rectangle"
@@ -235,15 +236,16 @@
 					Text="This is a more complex control"/>
 			</Panel>
 			
-			<TextBlock
-				Name="Unmovable"
-				Canvas.Left="50"
-				Canvas.Top="300"
-				Background="MediumVioletRed"
-				Padding="20"
-				sam:MoveSelectionGesture.IsMovable="False"
-				FontWeight="Bold"
-				Text="This can't be moved"/>
+			<sam:SelectAndMoveItem IsMovable="False">
+				<TextBlock
+					Name="Unmovable"
+					Canvas.Left="50"
+					Canvas.Top="300"
+					Background="MediumVioletRed"
+					Padding="20"
+					FontWeight="Bold"
+					Text="This can't be moved"/>
+			</sam:SelectAndMoveItem>
 			
 			<TextBlock
 				Name="InterestingSelection"
@@ -262,7 +264,7 @@
 						Background="Maroon">
 				<TextBlock Padding="15">This control has a slider and a checkbox</TextBlock>
 				<Slider Minimum="0" Maximum="10" Margin="5"/>
-				<CheckBox IsChecked="{Binding $self.(sam:Selection.IsSelected), Mode=OneWay}" 
+				<CheckBox IsChecked="{Binding $parent[sam:SelectAndMoveItem].IsSelected, Mode=TwoWay}" 
 				          HorizontalAlignment="Center">Is Selected</CheckBox>
 			</StackPanel>
 		</sam:SelectAndMove>

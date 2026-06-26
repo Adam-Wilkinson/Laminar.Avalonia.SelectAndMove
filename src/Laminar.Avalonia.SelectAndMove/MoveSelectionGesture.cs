@@ -51,14 +51,7 @@ public class MoveSelectionGesture : GestureRecognizer
             return;
         }
 
-        // Bubble up from the clicked object until we find a selected, movable control
-        if (e.Source is not Visual interactiveSource)
-        {
-            return;
-        }
-
-        var samItem = interactiveSource.FindAncestorOfType<SelectAndMoveItem>();
-        if (samItem is null || !GetIsMovable(samItem) || !Selection.GetIsSelectable(samItem))
+        if ((e.Source as Visual).FindAncestorOfType<SelectAndMoveItem>() is not { IsMovable: true, IsSelectable: true } samItem)
         {
             return;
         }
@@ -67,7 +60,10 @@ public class MoveSelectionGesture : GestureRecognizer
         _moving.Clear();
 
         var originalBoundsOfSelection = new Rect(0, 0, 0, 0);
-        foreach (var sibling in Selection.GetSelectedSiblings(target)?.Where(GetIsMovable).OfType<SelectAndMoveItem>() ?? [])
+        foreach (var sibling in 
+                 ItemsControl.ItemsControlFromItemContainer(samItem)?.ItemsPanelRoot?.Children
+                     .OfType<SelectAndMoveItem>()
+                     .Where(x => x is { IsMovable: true, IsSelected: true }) ?? [])
         {
             sibling.RenderTransform ??= new MatrixTransform();
             

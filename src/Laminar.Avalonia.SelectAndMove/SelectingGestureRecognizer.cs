@@ -4,7 +4,9 @@ using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Shapes;
 using Avalonia.Input;
 using Avalonia.Input.GestureRecognizers;
+using Avalonia.LogicalTree;
 using Avalonia.Media;
+using Avalonia.VisualTree;
 
 namespace Laminar.Avalonia.SelectAndMove;
 
@@ -23,6 +25,7 @@ public abstract class SelectingGestureRecognizer : GestureRecognizer
     private PointerEventArgs? _originalClick;
     private Control? _cursorDecoration;
     private IPointer? _capturedPointer;
+    private SelectAndMove? _host;
     private bool _beginGestureRequested;
     private bool _hoverStarted;
 
@@ -128,7 +131,7 @@ public abstract class SelectingGestureRecognizer : GestureRecognizer
             OnHoverMove(e);
         }
         
-        if (Target is not InputElement target || _originalClick is null)
+        if (_originalClick is null || _host is null)
         {
             return;
         }
@@ -150,13 +153,14 @@ public abstract class SelectingGestureRecognizer : GestureRecognizer
         
         if (AutoDeselectDuringGesture && e.KeyModifiers != SelectAndMove.GetSelectManyKeyModifiers(this))
         {
-            Selection.ClearSiblingSelection((InputElement)Target!);
+            _host.SelectionModel.DeselectAll();
         }
         
-        foreach (var element in Selection.GetSiblings(target)?
+        foreach (var element in _host.ItemsPanelRoot?.Children
+                     .OfType<SelectAndMoveItem>()
                      .Where(el => SelectionIntersectionCheck(selectionGeometry, el)) ?? [])
         {
-            Selection.SetIsSelected(element, true);
+            element.IsSelected = true;
         }
     }
 
@@ -175,6 +179,12 @@ public abstract class SelectingGestureRecognizer : GestureRecognizer
         EndGesture();
     }
 
+    protected override void OnAttachedToLogicalTree(LogicalTreeAttachmentEventArgs e)
+    {
+        base.OnAttachedToLogicalTree(e);
+        _host = (Target as Visual).FindAncestorOfType<SelectAndMove>();
+    }
+
     private void EndGesture()
     {
         _capturedPointer = null;
@@ -190,20 +200,20 @@ public abstract class SelectingGestureRecognizer : GestureRecognizer
         OnGestureFinished?.Invoke(this, EventArgs.Empty);
     }
     
-    private bool SelectionIntersectionCheck(Geometry selectionGeometry, InputElement control)
+    private bool SelectionIntersectionCheck(Geometry selectionGeometry, SelectAndMoveItem item)
     {
-        if (Target is not Visual visualTarget || !Selection.GetIsSelectable(control))
+        if (Target is not Visual visualTarget || !item.IsSelectable)
         {
             return false;
         }
 
-        if (!AutoDeselectDuringGesture && Selection.GetIsSelected(control))
+        if (!AutoDeselectDuringGesture && item.IsSelected)
         {
             return true;
         }
         
-        selectionGeometry.Transform = new MatrixTransform(visualTarget.TransformToVisual(control)!.Value);
-        var controlGeometry = GetIntersectionGeometry(control);
+        selectionGeometry.Transform = new MatrixTransform(visualTarget.TransformToVisual(item)!.Value);
+        var controlGeometry = GetIntersectionGeometry(item);
         if (!selectionGeometry.Bounds.Intersects(controlGeometry.Bounds))
         {
             return false;
@@ -264,7 +274,7 @@ public abstract class SelectingGestureRecognizer : GestureRecognizer
         
         if (e.KeyModifiers != SelectAndMove.GetSelectManyKeyModifiers(this))
         {
-            Selection.ClearSiblingSelection((InputElement)Target!);
+            _host?.SelectionModel.DeselectAll();
         }
     }
 }

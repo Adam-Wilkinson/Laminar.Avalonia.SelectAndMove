@@ -16,8 +16,12 @@ public class SelectAndMoveItem : ContentControl, ISelectable
 {
     public static readonly StyledProperty<bool> IsSelectedProperty = SelectingItemsControl.IsSelectedProperty.AddOwner<ListBoxItem>();
 
-    public static readonly StyledProperty<double> LeftProperty = Canvas.LeftProperty.AddOwner<SelectAndMoveItem>();
+    public static readonly StyledProperty<bool> IsSelectableProperty = AvaloniaProperty.Register<SelectAndMoveItem, bool>(nameof(IsSelectable), true);
 
+    public static readonly StyledProperty<bool> IsMovableProperty = AvaloniaProperty.Register<SelectAndMoveItem, bool>(nameof(IsMovable), true);
+    
+    public static readonly StyledProperty<double> LeftProperty = Canvas.LeftProperty.AddOwner<SelectAndMoveItem>();
+    
     public static readonly StyledProperty<double> TopProperty = Canvas.TopProperty.AddOwner<SelectAndMoveItem>();
     
     private SelectAndMove? _selectAndMoveOwner;
@@ -28,16 +32,23 @@ public class SelectAndMoveItem : ContentControl, ISelectable
         SelectableMixin.Attach<SelectAndMoveItem>(IsSelectedProperty);
         ClipToBoundsProperty.OverrideDefaultValue<SelectAndMoveItem>(false);
     }
-
-    public SelectAndMoveItem()
-    {
-        this[!Selection.IsSelectedProperty] = this[(!IsSelectedProperty).WithMode(BindingMode.TwoWay)];
-    }
     
     public bool IsSelected
     {
         get => GetValue(IsSelectedProperty);
         set => SetValue(IsSelectedProperty, value);
+    }
+
+    public bool IsSelectable
+    {
+        get => GetValue(IsSelectableProperty);
+        set => SetValue(IsSelectableProperty, value);
+    }
+
+    public bool IsMovable
+    {
+        get => GetValue(IsMovableProperty);
+        set => SetValue(IsMovableProperty, value);
     }
 
     public double Left
@@ -76,24 +87,9 @@ public class SelectAndMoveItem : ContentControl, ISelectable
             {
                 if (child is null) return;
 
-                if (!child.IsSet(Selection.IsSelectedProperty))
-                {
-                    child.SetValue(Selection.IsSelectableProperty, true, BindingPriority.Style);
-                }
-
-                if (!child.IsSet(MoveSelectionGesture.IsMovableProperty))
-                {
-                    child.SetValue(MoveSelectionGesture.IsMovableProperty, true, BindingPriority.Style);
-                }
-
                 BindIfSet(child, Canvas.LeftProperty, propertyOnSamItem: LeftProperty);
                 BindIfSet(child, Canvas.TopProperty, propertyOnSamItem: TopProperty);
                 BindIfSet(child, ZIndexLayerManger.ZIndexLayerProperty);
-                BindIfSet(child, Selection.IsSelectableProperty);
-                BindIfSet(child, MoveSelectionGesture.IsMovableProperty);
-                
-                child[!SelectingItemsControl.IsSelectedProperty] = this[(!SelectingItemsControl.IsSelectedProperty).WithMode(BindingMode.OneWay)];
-                child[!Selection.IsSelectedProperty] = this[(!Selection.IsSelectedProperty).WithMode(BindingMode.OneWay)];
             }));
         return true;
     }

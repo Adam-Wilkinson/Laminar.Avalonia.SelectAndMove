@@ -11,7 +11,7 @@ public partial class MainWindowViewModel : ObservableObject
 {
     [ObservableProperty] public partial string NewElementName { get; set; } = "New Element Name";
 
-    [ObservableProperty] public partial IReadOnlyList<object>? Selection { get; set; }
+    [ObservableProperty] public partial CanvasSelectionModel? SelectionModel { get; set; }
     
     public ObservableCollection<SelectAndMoveItemModel> Items { get; } = [];
     
@@ -29,8 +29,8 @@ public partial class MainWindowViewModel : ObservableObject
     [RelayCommand]
     private void Delete()
     {
-        if (Selection is null || Selection.Count == 0) return;
-        foreach (var item in Selection.Cast<SelectAndMoveItemModel>().ToList())
+        if (SelectionModel is null || SelectionModel.SelectedItems.Count == 0) return;
+        foreach (var item in SelectionModel.SelectedItems.Cast<SelectAndMoveItemModel>().ToList())
         {
             Items.Remove(item);
         }
@@ -39,6 +39,6 @@ public partial class MainWindowViewModel : ObservableObject
     [RelayCommand]
     private void SelectMostRecent(int count)
     {
-        Selection = Items.Skip(Items.Count - count).Take(count).ToList();
+        SelectionModel?.SelectedItems = Items.Skip(Items.Count - count).Take(count).ToList();
     }
 }

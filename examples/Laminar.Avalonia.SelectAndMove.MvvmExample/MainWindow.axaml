@@ -38,23 +38,25 @@
                            Background="#222"
                            DoubleTapped="SelectAndMove_DoubleTapped"
                            ResizeBehavior="KeepView"
-                           Selection="{Binding Selection}"
+                           SelectionModel="{Binding SelectionModel}"
                            sam:BackgroundGridLines.LineBrush="#111"
                            ItemsSource="{Binding Items}">
             <sam:SelectAndMove.ItemTemplate>
                 <DataTemplate DataType="vm:SelectAndMoveItemModel">
                     <Panel sam:SelectingGestureRecognizer.IntersectionShape="{Binding #HitTestShape}"
+                           Name="HostPanel"
                            Canvas.Left="{Binding X}"
                            Canvas.Top="{Binding Y}">
                         <Ellipse Name="HitTestShape" 
                                  HorizontalAlignment="Stretch"
+                                 Classes.IsSelected="{Binding $parent[sam:SelectAndMoveItem].IsSelected}"
                                  VerticalAlignment="Stretch">
                             <Ellipse.Styles>
-                                <Style Selector="Ellipse[(sam|Selection.IsSelected)=False]">
+                                <Style Selector="Ellipse">
                                     <Setter Property="Fill" Value="#444"/>
                                 </Style>
                                 
-                                <Style Selector="Ellipse[(sam|Selection.IsSelected)=True]">
+                                <Style Selector="Ellipse.IsSelected">
                                     <Setter Property="Fill" Value="#666"/>
                                 </Style>
                             </Ellipse.Styles>

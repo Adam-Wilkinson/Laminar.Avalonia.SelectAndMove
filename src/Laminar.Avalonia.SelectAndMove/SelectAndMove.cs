@@ -78,7 +78,6 @@ public class SelectAndMove : ItemsControl
         ViewTranslateXProperty.Changed.AddClassHandler<SelectAndMove>((sam, _) => sam.RecalculateRenderTransform());
         ViewTranslateYProperty.Changed.AddClassHandler<SelectAndMove>((sam, _) => sam.RecalculateRenderTransform());
         SelectionGesturesProperty.Changed.AddClassHandler<SelectAndMove>((sam, args) => sam.OnSelectionGesturesChanged(args));
-        BoundsProperty.Changed.AddClassHandler<SelectAndMove>((sam, args) => sam.BoundsChanged(args));
         SelectAndMoveItem.IsSelectedProperty.Changed.AddClassHandler<SelectAndMoveItem>(OnItemIsSelectedChanged);
         
         TwoPointerMoveGestureRecognizer.TwoPointerMoveEvent.AddClassHandler<SelectAndMove>((sam, args) => sam.OnTwoPointerGesture(args));
@@ -421,26 +420,25 @@ public class SelectAndMove : ItemsControl
         base.PrepareContainerForItemOverride(container, item, index);
         ZIndexLayerManger.BringToFront(container);
     }
-    
-    private void BoundsChanged(AvaloniaPropertyChangedEventArgs args)
+
+    protected override void OnSizeChanged(SizeChangedEventArgs e)
     {
         if (!IsLoaded) return;
-        var (oldValue, newValue) = args.GetOldAndNewValue<Rect>();
         using var _ = new ChangeTransformScope(this);
-        if (ResizeBehavior.HasFlag(ResizeBehavior.KeepHorizontalCenterline))
+        if (ResizeBehavior.HasFlag(ResizeBehavior.KeepHorizontalCenterline) && e.WidthChanged)
         {
-            ViewTranslateX += (newValue.Width - oldValue.Width) / 2;
+            ViewTranslateX += (e.NewSize.Width - e.PreviousSize.Width) / 2;
         }
 
-        if (ResizeBehavior.HasFlag(ResizeBehavior.KeepVerticalCenterLine))
+        if (ResizeBehavior.HasFlag(ResizeBehavior.KeepVerticalCenterLine) && e.HeightChanged)
         {
-            ViewTranslateY += (newValue.Height - oldValue.Height) / 2;
+            ViewTranslateY += (e.NewSize.Height - e.PreviousSize.Height) / 2;
         }
 
         if (ResizeBehavior.HasFlag(ResizeBehavior.KeepZoom))
         {
-            double widthChangeFactor = (newValue.Width - oldValue.Width) / oldValue.Width;
-            double heightChangeFactor = (newValue.Height - oldValue.Height) / oldValue.Height;
+            double widthChangeFactor = (e.NewSize.Width - e.PreviousSize.Width) / e.PreviousSize.Width;
+            double heightChangeFactor = (e.NewSize.Height - e.PreviousSize.Height) / e.PreviousSize.Height;
             ViewZoom += ViewZoom * (widthChangeFactor + heightChangeFactor / 2);
         }
     }

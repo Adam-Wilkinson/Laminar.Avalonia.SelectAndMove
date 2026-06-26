@@ -54,6 +54,8 @@ public class SelectAndMove : ItemsControl
     
     public static readonly StyledProperty<double> ViewTranslateYProperty = AvaloniaProperty.Register<SelectAndMove, double>(nameof(ViewTranslateY));
     
+    public static readonly StyledProperty<double> ArrowKeyMovementDistanceProperty = AvaloniaProperty.Register<SelectAndMove, double>(nameof(ArrowKeyMovementDistance), 50);
+    
     public static readonly StyledProperty<ResizeBehavior> ResizeBehaviorProperty = AvaloniaProperty.Register<SelectAndMove, ResizeBehavior>(nameof(ResizeBehavior));
     
     public static readonly StyledProperty<Rect> SnapGridProperty = MoveSelectionGesture.SnapGridProperty.AddOwner<SelectAndMove>();
@@ -86,6 +88,7 @@ public class SelectAndMove : ItemsControl
         
         ItemsPanelProperty.OverrideDefaultValue<SelectAndMove>(DefaultPanel);
         BackgroundProperty.OverrideDefaultValue<SelectAndMove>(Brush.Parse("#00000000"));
+        FocusableProperty.OverrideDefaultValue<SelectAndMove>(true);
         
         ResourceInclude selectAndMoveTheme = new((Uri?)null)
         {
@@ -155,6 +158,15 @@ public class SelectAndMove : ItemsControl
     {
         get => GetValue(ViewTranslateYProperty);
         set => SetValue(ViewTranslateYProperty, value);
+    }
+
+    /// <summary>
+    /// The pan distance that occurs when the arrow keys are pressed
+    /// </summary>
+    public double ArrowKeyMovementDistance
+    {
+        get => GetValue(ArrowKeyMovementDistanceProperty);
+        set => SetValue(ArrowKeyMovementDistanceProperty, value);
     }
 
     /// <summary>
@@ -263,6 +275,15 @@ public class SelectAndMove : ItemsControl
         }
     }
 
+    public void MoveSelection(Vector delta)
+    {
+        foreach (var item in SelectionModel.SelectedItems)
+        {
+            (ContainerFromItem(item) as SelectAndMoveItem)?.Top += delta.Y;
+            (ContainerFromItem(item) as SelectAndMoveItem)?.Left += delta.X;
+        }
+    }
+
     internal void UpdateSelectionFromEvent(RoutedEventArgs args)
     {
         if (args is PointerPressedEventArgs pointerPressedEventArgs)
@@ -306,6 +327,64 @@ public class SelectAndMove : ItemsControl
             }
             
             args.Handled = true;
+        }
+    }
+
+    protected override void OnKeyDown(KeyEventArgs e)
+    {
+        base.OnKeyDown(e);
+        bool handled = true;
+        switch (e.Key)
+        {
+            case Key.Up:
+                Move(new Vector(0, ArrowKeyMovementDistance / ViewZoom));
+                break;
+            case Key.Down:
+                Move(new Vector(0, -ArrowKeyMovementDistance / ViewZoom));
+                break;
+            case Key.Left:
+                Move(new Vector(ArrowKeyMovementDistance / ViewZoom, 0));
+                break;
+            case Key.Right:
+                Move(new Vector(-ArrowKeyMovementDistance / ViewZoom, 0));
+                break;
+            case Key.A:
+                if (e.KeyModifiers == KeyModifiers.Control)
+                {
+                    SelectionModel.SelectAll();
+                }
+                break;
+            case Key.OemMinus:
+                if (e.KeyModifiers == KeyModifiers.Control)
+                {
+                    ViewZoom *= 0.8;
+                }
+                break;
+            case Key.OemPlus:
+                if (e.KeyModifiers == KeyModifiers.Control)
+                {
+                    ViewZoom /= 0.8;
+                }
+                break;
+            default:
+                handled = false;
+                break;
+        }
+        e.Handled = handled;
+
+        return;
+
+        void Move(Vector delta)
+        {
+            if (SelectionModel.SelectedItems.Count == 0)
+            {
+                ViewTranslateX += delta.X;
+                ViewTranslateY += delta.Y;
+            }
+            else
+            {
+                MoveSelection(-delta);
+            }
         }
     }
 

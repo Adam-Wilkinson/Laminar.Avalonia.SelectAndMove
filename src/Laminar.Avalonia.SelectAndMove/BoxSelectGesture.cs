@@ -1,6 +1,5 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Shapes;
 using Avalonia.Input;
 using Avalonia.Media;
@@ -9,76 +8,67 @@ namespace Laminar.Avalonia.SelectAndMove;
 
 public class BoxSelectGesture : SelectingGestureRecognizer
 {
-    public static readonly AttachedProperty<Rectangle> SelectionBoxProperty = AvaloniaProperty.RegisterAttached<BoxSelectGesture, StyledElement, Rectangle>("SelectionBox", new Rectangle { Stroke = Brushes.Red, StrokeThickness = 2 });
-    public static Rectangle GetSelectionBox(StyledElement visual) => visual.GetValue(SelectionBoxProperty);
-    public static void SetSelectionBox(StyledElement visual, Rectangle value) => visual.SetValue(SelectionBoxProperty, value);
+    public static readonly AttachedProperty<ITemplate<Rectangle?>?> SelectionBoxTemplateProperty = AvaloniaProperty.RegisterAttached<BoxSelectGesture, StyledElement, ITemplate<Rectangle?>?>("SelectionBoxTemplate", inherits: true);
+    public static ITemplate<Rectangle?>? GetSelectionBoxTemplate(StyledElement element) => element.GetValue(SelectionBoxTemplateProperty);
+    public static void SetSelectionBoxTemplate(StyledElement element, ITemplate<Rectangle?>? template) => element.SetValue(SelectionBoxTemplateProperty, template);
     
-    private readonly Canvas _drawingCanvas = new()
-    {
-        IsHitTestVisible = false
-    };
-    
-    private bool _selectionBoxAdded;
-    private PointerEventArgs? _originalClick;
+    private Point _originalClickPoint;
+    private Rectangle _selectionBox;
 
+    public ITemplate<Rectangle?>? SelectionBoxTemplate
+    {
+        get => GetValue(SelectionBoxTemplateProperty);
+        set => SetValue(SelectionBoxTemplateProperty, value);
+    }
+    
     static BoxSelectGesture()
     {
-        SelectionBoxProperty.Changed.AddClassHandler<BoxSelectGesture>((bsg, args) => bsg.SelectionBoxChanged(args));
+        SelectionBoxTemplateProperty.Changed.AddClassHandler<BoxSelectGesture>((bsg, args) => bsg.SelectionBoxChanged(args));
     }
 
     public BoxSelectGesture()
     {
-        _drawingCanvas.Children.Add(GetSelectionBox(this));
-    }
-
-    protected override void PointerPressed(PointerPressedEventArgs e)
-    {
-        base.PointerPressed(e);
-        Selection.SetIsSelectable(GetSelectionBox(this), false);
-    }
-
-    protected override Geometry? CreateUpdatedSelectionGeometry(PointerEventArgs mostRecentArgs)
-    {
-        if (Target is not Visual visualTarget) return null;
-        
-        if (_originalClick is null)
+        _selectionBox = SelectionBoxTemplate?.Build() ?? new Rectangle
         {
-            _originalClick = mostRecentArgs;
-            return null;
-        }
-        
-        if (!_selectionBoxAdded && OverlayLayer.GetOverlayLayer(visualTarget) is { } overlayLayer)
-        {
-            overlayLayer.Children.Add(_drawingCanvas);
-            _selectionBoxAdded = true;
-            _drawingCanvas.Clip = new RectangleGeometry(
-                visualTarget.TransformToVisual(_drawingCanvas) is { } transform ? 
-                    visualTarget.Bounds.TransformToAABB(transform) : visualTarget.Bounds);
-        }
-        
-        var selectionBox = GetSelectionBox(this);
-        Rect drawnRect = new Rect(_originalClick.GetPosition(_drawingCanvas), mostRecentArgs.GetPosition(_drawingCanvas)).Normalize();
-        Canvas.SetLeft(selectionBox, drawnRect.Left);
-        Canvas.SetTop(selectionBox, drawnRect.Top);
-        selectionBox.Width = drawnRect.Width;
-        selectionBox.Height = drawnRect.Height;
-
-        return new RectangleGeometry(new Rect(_originalClick.GetPosition(visualTarget),
-            mostRecentArgs.GetPosition(visualTarget)).Normalize());
+            Stroke = Brushes.Red,
+            StrokeThickness = 3
+        };
     }
 
-    protected override void Reset()
+    protected override void OnBeginGesture(PointerEventArgs e)
     {
-        if (Target is not Visual visualTarget) return;
-        OverlayLayer.GetOverlayLayer(visualTarget)?.Children.Remove(_drawingCanvas);
-        _selectionBoxAdded = false;
-        _originalClick = null;
+        base.OnBeginGesture(e);
+        _originalClickPoint = e.GetPosition(DrawingCanvas);
+        UpdateSelectionBox(e);
+        DrawingCanvas?.Children.Add(_selectionBox);
+    }
+
+    protected override Geometry? CreateUpdatedSelectionGeometry(PointerEventArgs mostRecentArgs) 
+        => new RectangleGeometry(UpdateSelectionBox(mostRecentArgs));
+
+    private Rect UpdateSelectionBox(PointerEventArgs e)
+    {
+        Rect drawnRect = new Rect(_originalClickPoint, e.GetPosition(DrawingCanvas)).Normalize();
+        Canvas.SetLeft(_selectionBox, drawnRect.Left);
+        Canvas.SetTop(_selectionBox, drawnRect.Top);
+        _selectionBox.Width = drawnRect.Width;
+        _selectionBox.Height = drawnRect.Height;
+        return drawnRect;
+    }
+
+    protected override void Cleanup()
+    {
+        base.Cleanup();
+        _originalClickPoint = new Point(double.NaN, double.NaN);
+        DrawingCanvas?.Children.Remove(_selectionBox);
     }
 
     private void SelectionBoxChanged(AvaloniaPropertyChangedEventArgs args)
     {
-        var (oldValue, newValue) = args.GetOldAndNewValue<Rectangle>();
-        _drawingCanvas.Children.Remove(oldValue);
-        _drawingCanvas.Children.Add(newValue);
+        _selectionBox = args.GetNewValue<ITemplate<Rectangle?>?>()?.Build() ?? new Rectangle
+        {
+            Stroke = Brushes.Red,
+            StrokeThickness = 3
+        };
     }
 }

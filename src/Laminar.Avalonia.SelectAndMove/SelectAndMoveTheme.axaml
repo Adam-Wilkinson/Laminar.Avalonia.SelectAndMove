@@ -5,43 +5,61 @@
         <Setter Property="sam:BackgroundGridLines.LineBrush" Value="{DynamicResource SystemBaseLowColor}"/>
         <Setter Property="Cursor" Value="Arrow"/>
         
+        <Setter Property="sam:BoxSelectGesture.SelectionBoxTemplate">
+            <sam:SelectionBoxTemplate>
+                <Rectangle Stroke="Red" StrokeThickness="3"/>
+            </sam:SelectionBoxTemplate>
+        </Setter>
+        
+        <Setter Property="SelectionGestures">
+            <sam:SelectionGestureCollection>
+                <sam:BoxSelectGesture TriggerSelectionMouseButton="Left"/>
+            </sam:SelectionGestureCollection>
+        </Setter>
+        
         <Setter Property="Template">
             <ControlTemplate>
-                <Border Name="PART_HitBorder" 
+                <Border Name="PART_BackgroundGestureTarget" 
                         Background="{TemplateBinding Background}"
                         BackgroundSizing="{TemplateBinding BackgroundSizing}"
                         BorderBrush="{TemplateBinding BorderBrush}"
                         BorderThickness="{TemplateBinding BorderThickness}"
                         ClipToBounds="{TemplateBinding ClipToBounds}"
                         CornerRadius="{TemplateBinding CornerRadius}">
-                    <Border.GestureRecognizers>
-                        <sam:TwoPointerMoveGestureRecognizer/>
+                    
+                    <Panel Background="Transparent"
+                           IsHitTestVisible="True">
+                        <Panel.GestureRecognizers>
+                            <sam:TwoPointerMoveGestureRecognizer/>
                         
-                        <ScrollGestureRecognizer CanHorizontallyScroll="True"
-                                                 CanVerticallyScroll="True"
-                                                 IsScrollInertiaEnabled="True"
-                                                 ScrollStartDistance="9"/>
+                            <ScrollGestureRecognizer CanHorizontallyScroll="True"
+                                                     CanVerticallyScroll="True"
+                                                     IsScrollInertiaEnabled="True"
+                                                     ScrollStartDistance="9"/>
                         
-                        <sam:MoveSelectionGesture SnapGrid="{TemplateBinding SnapGrid}"
-                                                  SnapMode="{TemplateBinding (sam:MoveSelectionGesture.SnapMode)}"/>
+                            <sam:MoveSelectionGesture SnapGrid="{TemplateBinding SnapGrid}"
+                                                      SnapMode="{TemplateBinding (sam:MoveSelectionGesture.SnapMode)}"/>
+                        </Panel.GestureRecognizers>
                         
-                        <sam:BoxSelectGesture sam:SelectAndMove.SelectManyKeyModifiers="{TemplateBinding (sam:SelectAndMove.SelectManyKeyModifiers)}"
-                                              SelectionBox="{TemplateBinding (sam:BoxSelectGesture.SelectionBox)}"
-                                              sam:SelectingGestureRecognizer.TriggerSelectionMouseButton="{TemplateBinding (sam:SelectingGestureRecognizer.TriggerSelectionMouseButton)}"/>
+                        <Panel Name="PART_TransformRoot">
+                            <sam:BackgroundGridLines SnapGrid="{Binding SnapGrid,
+                                                            RelativeSource={RelativeSource TemplatedParent}, 
+                                                            Mode=OneWayToSource}"
+                                                     MajorLineSeparation="{TemplateBinding (sam:BackgroundGridLines.MajorLineSeparation)}"
+                                                     MajorLineThickness="{TemplateBinding (sam:BackgroundGridLines.MajorLineThickness)}"
+                                                     MinorLineCount="{TemplateBinding (sam:BackgroundGridLines.MinorLineCount)}"
+                                                     LineBrush="{TemplateBinding (sam:BackgroundGridLines.LineBrush)}"/>
+                            
+                            <ItemsPresenter Name="PART_ItemsPresenter"
+                                            IsHitTestVisible="True"
+                                            ItemsPanel="{TemplateBinding ItemsPanel}"/>
+                        </Panel>
                         
-                    </Border.GestureRecognizers>
-                    <Panel Name="PART_TransformRoot">
-                        <sam:BackgroundGridLines Name="PART_GridLines" 
-                                                 SnapGrid="{Binding SnapGrid,
-                                                        RelativeSource={RelativeSource TemplatedParent}, 
-                                                        Mode=OneWayToSource}"
-                                                 MajorLineSeparation="{TemplateBinding (sam:BackgroundGridLines.MajorLineSeparation)}"
-                                                 MajorLineThickness="{TemplateBinding (sam:BackgroundGridLines.MajorLineThickness)}"
-                                                 MinorLineCount="{TemplateBinding (sam:BackgroundGridLines.MinorLineCount)}"
-                                                 LineBrush="{TemplateBinding (sam:BackgroundGridLines.LineBrush)}"/>
-                        <ItemsPresenter Name="PART_ItemsPresenter"
-                                        IsHitTestVisible="True"
-                                        ItemsPanel="{TemplateBinding ItemsPanel}"/>
+                        <Canvas Name="PART_SelectionGestureOverlay" 
+                                HorizontalAlignment="Stretch" 
+                                VerticalAlignment="Stretch"
+                                Background="Transparent"
+                                IsHitTestVisible="False"/>
                     </Panel>
                 </Border>
             </ControlTemplate>

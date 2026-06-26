@@ -22,7 +22,7 @@ public class MoveSelectionGesture : GestureRecognizer
     public static bool GetIsMovable(AvaloniaObject element) => element.GetValue(IsMovableProperty);
     public static void SetIsMovable(AvaloniaObject element, bool value) => element.SetValue(IsMovableProperty, value);
     
-    private readonly List<(InputElement control, Point originalTopLeft)> _moving = [];
+    private readonly List<(SelectAndMoveItem item, Point originalTopLeft)> _moving = [];
 
     private Point _originalClickPoint = new(0, 0);
     private IPointer? _clickedPointer;
@@ -51,14 +51,7 @@ public class MoveSelectionGesture : GestureRecognizer
             return;
         }
 
-        // Bubble up from the clicked object until we find a selected, movable control
-        if (e.Source is not Visual interactiveSource)
-        {
-            return;
-        }
-
-        var samItem = interactiveSource.FindAncestorOfType<SelectAndMoveItem>();
-        if (samItem is null || !GetIsMovable(samItem) || !Selection.GetIsSelectable(samItem))
+        if ((e.Source as Visual).FindAncestorOfType<SelectAndMoveItem>() is not { IsMovable: true, IsSelectable: true } samItem)
         {
             return;
         }
@@ -67,7 +60,10 @@ public class MoveSelectionGesture : GestureRecognizer
         _moving.Clear();
 
         var originalBoundsOfSelection = new Rect(0, 0, 0, 0);
-        foreach (var sibling in Selection.GetSelectedSiblings(target)?.Where(GetIsMovable) ?? [])
+        foreach (var sibling in 
+                 ItemsControl.ItemsControlFromItemContainer(samItem)?.ItemsPanelRoot?.Children
+                     .OfType<SelectAndMoveItem>()
+                     .Where(x => x is { IsMovable: true, IsSelected: true }) ?? [])
         {
             sibling.RenderTransform ??= new MatrixTransform();
             
@@ -107,19 +103,21 @@ public class MoveSelectionGesture : GestureRecognizer
         
         Capture(e.Pointer);
 
-        foreach ((InputElement control, Point originalControlTopLeft) in _moving)
+        foreach ((SelectAndMoveItem item, Point originalControlTopLeft) in _moving)
         {
             Point localMouseDelta = targetDelta;
-            if (control.TransformToVisual(visualTarget) is { } transform)
+            if (item.TransformToVisual(visualTarget) is { } transform)
             { 
                 Vector controlScale = new Point(1, 1) * transform.Invert() - new Point(0, 0) * transform.Invert();
                 localMouseDelta = new(targetDelta.X * controlScale.X, targetDelta.Y * controlScale.Y);
             }
+
+            item.SetIsDragging(true);
             
             if (_snapPoint is not { } snapPoint)
             {
-                Canvas.SetLeft(control, (originalControlTopLeft + localMouseDelta).X);
-                Canvas.SetTop(control, (originalControlTopLeft + localMouseDelta).Y);
+                Canvas.SetLeft(item, (originalControlTopLeft + localMouseDelta).X);
+                Canvas.SetTop(item, (originalControlTopLeft + localMouseDelta).Y);
                 continue;
             }
 
@@ -131,8 +129,8 @@ public class MoveSelectionGesture : GestureRecognizer
 
             Point newControlLocation = newPositionOfAnchor + offsetFromSnapAnchor;
 
-            Canvas.SetTop(control, newControlLocation.Y);
-            Canvas.SetLeft(control, newControlLocation.X);
+            Canvas.SetTop(item, newControlLocation.Y);
+            Canvas.SetLeft(item, newControlLocation.X);
         }
     }
 
@@ -157,6 +155,13 @@ public class MoveSelectionGesture : GestureRecognizer
     {
         _clickedPointer?.Capture(null);
         _clickedPointer = null;
+        foreach (var (control, _) in _moving)
+        {
+            if (control is SelectAndMoveItem item)
+            {
+                item.SetIsDragging(false);
+            }
+        }
     }
 
     private static Point? GetSnapPoint(Rect boundsRect, SnapMode snapMode) => snapMode switch

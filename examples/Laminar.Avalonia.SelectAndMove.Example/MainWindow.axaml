@@ -68,7 +68,7 @@
 				          Grid.Row="0" Grid.Column="1"
 				          HorizontalAlignment="Stretch"
 				          ItemsSource="{x:Static loc:MainWindow.AllSnapModes}"
-				          SelectedItem="{Binding #ExampleSelectAndMove.(sam:MoveSelectionGesture.SnapMode), Mode=TwoWay}"/>
+				          SelectedItem="{Binding #ExampleSelectAndMove.SnapMode, Mode=TwoWay}"/>
 
 				<TextBlock
 					Grid.Row="1" Grid.Column="0"

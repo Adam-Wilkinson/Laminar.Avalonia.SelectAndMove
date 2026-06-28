@@ -57,22 +57,33 @@ public class SelectAndMove : ItemsControl
     public static readonly StyledProperty<double> ArrowKeyMovementDistanceProperty = AvaloniaProperty.Register<SelectAndMove, double>(nameof(ArrowKeyMovementDistance), 50);
     
     public static readonly StyledProperty<ResizeBehavior> ResizeBehaviorProperty = AvaloniaProperty.Register<SelectAndMove, ResizeBehavior>(nameof(ResizeBehavior));
-    
-    public static readonly StyledProperty<Rect> SnapGridProperty = MoveSelectionGesture.SnapGridProperty.AddOwner<SelectAndMove>();
+
+    public static readonly StyledProperty<Rect> SnapGridProperty = AvaloniaProperty.Register<SelectAndMove, Rect>(nameof(SnapGrid));
+
+    public static readonly StyledProperty<SnapMode> SnapModeProperty = AvaloniaProperty.Register<SelectAndMove, SnapMode>(nameof(SnapMode));
 
     public static readonly DirectProperty<SelectAndMove, Visual> TransformRootProperty = AvaloniaProperty.RegisterDirect<SelectAndMove, Visual>(nameof(TransformRoot), sam => sam._transformRoot ?? sam);
 
-    public static readonly DirectProperty<SelectAndMove, CanvasSelectionModel> SelectionModelProperty =
-        AvaloniaProperty.RegisterDirect<SelectAndMove, CanvasSelectionModel>(nameof(SelectionModel),
-            o => o.SelectionModel, defaultBindingMode: BindingMode.OneWayToSource);
+    public static readonly DirectProperty<SelectAndMove, CanvasSelectionModel> SelectionModelProperty = AvaloniaProperty.RegisterDirect<SelectAndMove, CanvasSelectionModel>(nameof(SelectionModel), o => o.SelectionModel, defaultBindingMode: BindingMode.OneWayToSource);
         
+    public static readonly RoutedEvent<MoveEventArgs> MoveStartedEvent = RoutedEvent.Register<SelectAndMove, MoveEventArgs>(nameof(MoveStarted), RoutingStrategies.Direct);
+    
+    public static readonly RoutedEvent<MoveEventArgs> MoveEvent = RoutedEvent.Register<SelectAndMove, MoveEventArgs>(nameof(Move),  RoutingStrategies.Direct);
+
+    public static readonly RoutedEvent<MoveEventArgs> MoveEndedEvent = RoutedEvent.Register<SelectAndMove, MoveEventArgs>(nameof(MoveEnded), RoutingStrategies.Direct);
+    
     private PointerEventArgs? _previousPanArgs;
+    
     private bool _blockRenderRecalculation;
     private bool _lastClickOnSelectedElement;
+    
     private InputElement? _gestureBackground;
     private Visual? _transformRoot;
     private Canvas? _selectionGestureLayer;
+    
     private List<SelectAndMoveItem> _lastClickedItems = [];
+    private MoveSession? _cursorMoveSession;
+    private PointerEventArgs? _cursorMoveSessionInitialArgs;
 
     static SelectAndMove()
     {
@@ -115,6 +126,12 @@ public class SelectAndMove : ItemsControl
         set => SetValue(SnapGridProperty, value);
     }
 
+    public SnapMode SnapMode
+    {
+        get => GetValue(SnapModeProperty);
+        set => SetValue(SnapModeProperty, value);
+    }
+    
     /// <summary>
     /// The mouse button that triggers a pan gesture
     /// </summary>
@@ -206,12 +223,24 @@ public class SelectAndMove : ItemsControl
             return field;
         }
     }
-
-    private void OnItemDeselected(object? sender, CanvasSelectionModel.ItemDeselectedEventArgs e)
-        => ContainerFromIndex(e.IndexInItemsView)?.SetCurrentValue(SelectingItemsControl.IsSelectedProperty, false);
-
-    private void OnItemSelected(object? sender, CanvasSelectionModel.ItemSelectedEventArgs e)
-        => ContainerFromIndex(e.IndexInItemsView)?.SetCurrentValue(SelectingItemsControl.IsSelectedProperty, true);
+    
+    public event EventHandler<MoveEventArgs> MoveStarted 
+    {
+        add => AddHandler(MoveStartedEvent, value);
+        remove => RemoveHandler(MoveStartedEvent, value);
+    }
+    
+    public event EventHandler<MoveEventArgs> Move
+    {
+        add => AddHandler(MoveEvent, value);
+        remove => RemoveHandler(MoveEvent, value);
+    } 
+    
+    public event EventHandler<MoveEventArgs> MoveEnded
+    {
+        add => AddHandler(MoveEndedEvent, value);
+        remove => RemoveHandler(MoveEndedEvent, value);
+    }
 
     public Matrix ComputeCurrentTransform() => 
         Matrix.CreateTranslation(ViewTranslateX, ViewTranslateY) * Matrix.CreateScale(ViewZoom, ViewZoom);
@@ -275,13 +304,18 @@ public class SelectAndMove : ItemsControl
         }
     }
 
-    public void MoveSelection(Vector delta)
+    public void MoveSelection(Vector distance)
     {
-        foreach (var item in SelectionModel.SelectedItems)
-        {
-            (ContainerFromItem(item) as SelectAndMoveItem)?.Top += delta.Y;
-            (ContainerFromItem(item) as SelectAndMoveItem)?.Left += delta.X;
-        }
+        using var session = GetMoveSession(0);
+        session.OverallMoveDistance = distance;
+    }
+    
+    public MoveSession GetMoveSession(double minimumMoveDistance = -1) => new(this, SnapMode, SnapGrid, minimumMoveDistance);
+
+    public IDisposable StartCursorMove(double minimumMoveDistance)
+    {
+        _cursorMoveSession = GetMoveSession(minimumMoveDistance);
+        return _cursorMoveSession;
     }
 
     internal void UpdateSelectionFromEvent(RoutedEventArgs args)
@@ -303,6 +337,7 @@ public class SelectAndMove : ItemsControl
             if (_lastClickedItems[^1].IsSelected)
             {
                 _lastClickOnSelectedElement = true;
+                StartPotentialMoveFromClick(pointerPressedEventArgs);
                 return;
             }
 
@@ -315,6 +350,7 @@ public class SelectAndMove : ItemsControl
             {
                 ZIndexLayerManger.BringToFront(_lastClickedItems[^1]);
                 _lastClickedItems[^1].IsSelected = true;
+                StartPotentialMoveFromClick(pointerPressedEventArgs);
             }
         }
         else if (args is PointerReleasedEventArgs)
@@ -325,9 +361,27 @@ public class SelectAndMove : ItemsControl
                 _lastClickedItems[0].IsSelected = true;
                 ZIndexLayerManger.BringToFront(_lastClickedItems[0]);
             }
+
+            if (_cursorMoveSessionInitialArgs is PointerPressedEventArgs)
+            {
+                _cursorMoveSession?.Dispose();
+                _cursorMoveSessionInitialArgs = null;
+                _cursorMoveSession = null;
+            }
+
+            TryStopPanning();
             
             args.Handled = true;
         }
+    }
+
+    private void StartPotentialMoveFromClick(PointerPressedEventArgs args)
+    {
+        if (!_lastClickedItems[^1].IsMovable) return;
+        
+        StartCursorMove(6); 
+        _cursorMoveSessionInitialArgs = args;
+        args.Handled = true;
     }
 
     protected override void OnKeyDown(KeyEventArgs e)
@@ -374,16 +428,21 @@ public class SelectAndMove : ItemsControl
 
         return;
 
-        void Move(Vector delta)
+        void Move(Vector movement)
         {
             if (SelectionModel.SelectedItems.Count == 0)
             {
-                ViewTranslateX += delta.X;
-                ViewTranslateY += delta.Y;
+                ViewTranslateX += movement.X;
+                ViewTranslateY += movement.Y;
             }
             else
             {
-                MoveSelection(-delta);
+                if (SnapMode != SnapMode.None)
+                {
+                    movement = new Vector(movement.X == 0 ? 0 : SnapGrid.Width * Math.Sign(movement.X), movement.Y == 0 ? 0 : SnapGrid.Height * Math.Sign(movement.Y));
+                }
+
+                MoveSelection(-movement);
             }
         }
     }
@@ -425,17 +484,24 @@ public class SelectAndMove : ItemsControl
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
     { 
         base.OnPointerReleased(e);
-        if (ItemsPanelRoot is null)
+        if (TryStopPanning())
         {
+            e.Handled = true;
             return;
         }
-        
-        foreach (var child in ItemsPanelRoot.Children)
+
+        if (SelectionModel.DeselectAll())
         {
-            SelectingItemsControl.SetIsSelected(child, false);
+            e.Handled = true;
         }
-        
+    }
+
+    private bool TryStopPanning()
+    {
+        if (_previousPanArgs is null) return false;
+        _previousPanArgs = null;
         PseudoClasses.Remove(IsPanningPseudoclass);
+        return true;
     }
 
     private void OnTwoPointerGesture(TwoPointerMoveEventArgs args)
@@ -458,22 +524,29 @@ public class SelectAndMove : ItemsControl
 
     protected override void OnPointerMoved(PointerEventArgs e)
     {
-        if (!ButtonIsPressed(e.Properties, PanMouseButton))
+        if (ButtonIsPressed(e.Properties, PanMouseButton))
         {
-            _previousPanArgs = null;
-            return;
-        }
-
-        if (_previousPanArgs is not null)
-        {
+            _previousPanArgs ??= e;
             PseudoClasses.Add(IsPanningPseudoclass);
             using var _ = new ChangeTransformScope(this);
             Point delta = e.GetPosition(_transformRoot) - _previousPanArgs.GetPosition(_transformRoot);
             ViewTranslateX += delta.X;
             ViewTranslateY += delta.Y;
+            e.Handled = true;
+            _previousPanArgs = e;
+            return;
         }
 
-        _previousPanArgs = e;
+        _previousPanArgs = null;
+        if (_cursorMoveSession is not null)
+        {
+            _cursorMoveSessionInitialArgs ??= e;
+            _cursorMoveSession.OverallMoveDistance = e.GetPosition(TransformRoot) - _cursorMoveSessionInitialArgs.GetPosition(TransformRoot);
+            if (_cursorMoveSession.IsActive) e.Handled = true;
+            return;
+        }
+        
+        _cursorMoveSessionInitialArgs = null;
     }
     
     protected override bool NeedsContainerOverride(object? item, int index, out object? recycleKey)
@@ -629,6 +702,12 @@ public class SelectAndMove : ItemsControl
         recognizer.DrawingCanvas = null;
         _gestureBackground?.GestureRecognizers.Remove(recognizer);
     }
+
+    private void OnItemDeselected(object? sender, CanvasSelectionModel.ItemDeselectedEventArgs e)
+        => ContainerFromIndex(e.IndexInItemsView)?.SetCurrentValue(SelectingItemsControl.IsSelectedProperty, false);
+
+    private void OnItemSelected(object? sender, CanvasSelectionModel.ItemSelectedEventArgs e)
+        => ContainerFromIndex(e.IndexInItemsView)?.SetCurrentValue(SelectingItemsControl.IsSelectedProperty, true);
     
     private readonly struct ChangeTransformScope : IDisposable
     {

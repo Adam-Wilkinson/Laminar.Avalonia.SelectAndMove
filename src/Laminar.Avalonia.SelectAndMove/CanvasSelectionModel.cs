@@ -76,12 +76,15 @@ public class CanvasSelectionModel : INotifyPropertyChanged
         }
     }
 
-    public void DeselectAll()
+    public bool DeselectAll()
     {
+        if (SelectedItems.Count == 0) return false;
         foreach (var (index, item) in _itemsView.Index())
         {
             EnsureDeselected(item, index);
         }
+
+        return true;
     }
 
     public void Select(IEnumerable items)

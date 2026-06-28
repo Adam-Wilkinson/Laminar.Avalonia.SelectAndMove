@@ -36,9 +36,6 @@
                                                      CanVerticallyScroll="True"
                                                      IsScrollInertiaEnabled="True"
                                                      ScrollStartDistance="9"/>
-                        
-                            <sam:MoveSelectionGesture SnapGrid="{TemplateBinding SnapGrid}"
-                                                      SnapMode="{TemplateBinding (sam:MoveSelectionGesture.SnapMode)}"/>
                         </Panel.GestureRecognizers>
                         
                         <Panel Name="PART_TransformRoot">

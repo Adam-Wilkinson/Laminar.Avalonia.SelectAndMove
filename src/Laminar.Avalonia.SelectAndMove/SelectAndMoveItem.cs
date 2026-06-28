@@ -99,7 +99,7 @@ public class SelectAndMoveItem : ContentControl, ISelectable
         base.OnPointerPressed(e);
         _selectAndMoveOwner?.UpdateSelectionFromEvent(e);
     }
-
+    
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
     {
         base.OnPointerReleased(e);

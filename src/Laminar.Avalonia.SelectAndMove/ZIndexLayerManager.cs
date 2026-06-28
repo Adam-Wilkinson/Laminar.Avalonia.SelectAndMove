@@ -108,7 +108,7 @@ public class ZIndexLayerManger(int initialLayerIncrement)
 
         for (int i = zeroLayerIndex + 1; i < _layers.Count; i++)
         {
-            _layers.GetValueAtIndex(i).SetRange(increment * (zeroLayerIndex - i), increment * (zeroLayerIndex - i + 1));
+            _layers.GetValueAtIndex(i).SetRange(increment * (i - zeroLayerIndex), increment * (i - zeroLayerIndex + 1));
         }
     }
     

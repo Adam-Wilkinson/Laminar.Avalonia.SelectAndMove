@@ -11,155 +11,158 @@
 		VerticalAlignment="Stretch" 
 		HorizontalAlignment="Stretch">
 
-		<StackPanel
-			Orientation="Vertical"
-			Margin="20"
-			Width="400">
+		<ScrollViewer>
+			<StackPanel
+				Orientation="Vertical"
+				Margin="20"
+				Width="400">
 
-			<Grid ColumnDefinitions="*,*" Margin="0,0,0,10">
-				<TextBlock Grid.Column="0"
-					VerticalAlignment="Center"
-					Text="Number of Minor Lines: "/>
 				
-				<NumericUpDown Grid.Column="1"
-					VerticalAlignment="Center"
-					Value="{Binding #ExampleSelectAndMove.(sam:BackgroundGridLines.MinorLineCount), Mode=TwoWay}"
-					Text="Test"/>
-			</Grid>
+				<Grid ColumnDefinitions="*,*" Margin="0,0,0,10">
+					<TextBlock Grid.Column="0"
+						VerticalAlignment="Center"
+						Text="Number of Minor Lines: "/>
+					
+					<NumericUpDown Grid.Column="1"
+						VerticalAlignment="Center"
+						Value="{Binding #ExampleSelectAndMove.(sam:BackgroundGridLines.MinorLineCount), Mode=TwoWay}"
+						Text="Test"/>
+				</Grid>
+					
+				<TextBlock Text="{Binding #ExampleSelectAndMove.(sam:BackgroundGridLines.MajorLineSeparation), StringFormat='Major Line Separation: {0:0.0}'}"/>
+				<Slider Value="{Binding #ExampleSelectAndMove.(sam:BackgroundGridLines.MajorLineSeparation), Mode=TwoWay}"
+				        Minimum="10" Maximum="500"/>
+					
+				<TextBlock Text="{Binding #ExampleSelectAndMove.(sam:BackgroundGridLines.MajorLineThickness), StringFormat='Major Line Thickness: {0:0.0}'}"/>
+				<Slider Value="{Binding #ExampleSelectAndMove.(sam:BackgroundGridLines.MajorLineThickness), Mode=TwoWay}"
+				        Minimum="0.1" Maximum="10"/>
 				
-			<TextBlock Text="{Binding #ExampleSelectAndMove.(sam:BackgroundGridLines.MajorLineSeparation), StringFormat='Major Line Separation: {0:0.0}'}"/>
-			<Slider Value="{Binding #ExampleSelectAndMove.(sam:BackgroundGridLines.MajorLineSeparation), Mode=TwoWay}"
-			        Minimum="10" Maximum="500"/>
+				<Separator/>
 				
-			<TextBlock Text="{Binding #ExampleSelectAndMove.(sam:BackgroundGridLines.MajorLineThickness), StringFormat='Major Line Thickness: {0:0.0}'}"/>
-			<Slider Value="{Binding #ExampleSelectAndMove.(sam:BackgroundGridLines.MajorLineThickness), Mode=TwoWay}"
-			        Minimum="0.1" Maximum="10"/>
-			
-			<Separator/>
-			
-			<TextBlock Text="{Binding #ExampleSelectAndMove.ZoomSpeed, StringFormat='Zoom Speed: {0:0.0}'}"/>
-			
-			<Slider Value="{Binding #ExampleSelectAndMove.ZoomSpeed, Mode=TwoWay}" 
-			        Minimum="0.1" Maximum="5"/>
-
-			<TextBlock Text="{Binding #ExampleSelectAndMove.ViewZoom, StringFormat='Current Zoom: {0:0.0}'}"/>
-			<Slider Value="{Binding #ExampleSelectAndMove.ViewZoom, Mode=TwoWay}"
-			        Minimum="0.2" Maximum="5"/>
-			
-			<Grid ColumnDefinitions="*,*">
-				<NumericUpDown Grid.Column="0"
-				               Value="{Binding #ExampleSelectAndMove.ViewTranslateX}"
-				               FormatString="X: {0:0.0}"/>
-				<NumericUpDown Grid.Column="1"
-				               Value="{Binding #ExampleSelectAndMove.ViewTranslateY}"
-				               FormatString="Y: {0:0.0}"/>
-			</Grid>
-			
-			<Separator/>
-
-			<Grid ColumnDefinitions="*,*" RowDefinitions="*,*,*,*">
+				<TextBlock Text="{Binding #ExampleSelectAndMove.ZoomSpeed, StringFormat='Zoom Speed: {0:0.0}'}"/>
 				
-				<TextBlock
-					Grid.Row="0" Grid.Column="0"
-					VerticalAlignment="Center"
-					Text="Snap Mode: "/>	
-			
-				<ComboBox Name="SnapModeSelector"
-				          Grid.Row="0" Grid.Column="1"
-				          HorizontalAlignment="Stretch"
-				          ItemsSource="{x:Static loc:MainWindow.AllSnapModes}"
-				          SelectedItem="{Binding #ExampleSelectAndMove.SnapMode, Mode=TwoWay}"/>
+				<Slider Value="{Binding #ExampleSelectAndMove.ZoomSpeed, Mode=TwoWay}" 
+				        Minimum="0.1" Maximum="5"/>
 
-				<TextBlock
-					Grid.Row="1" Grid.Column="0"
-					VerticalAlignment="Center"
-					Text="Pan Mouse Button: "/>
-
-				<ComboBox Name="PanButtonSelector"
-				          HorizontalAlignment="Stretch"
-				          Grid.Row="1" Grid.Column="1"
-				          ItemsSource="{x:Static loc:MainWindow.AllMouseButtons}"
-				          SelectedItem="{Binding #ExampleSelectAndMove.PanMouseButton, Mode=TwoWay}"/>
-
-				<TextBlock
-					Grid.Row="2" Grid.Column="0"
-					VerticalAlignment="Center"
-					Text="Box Select Button: "/>
-
-				<ComboBox Name="BoxSelectButtonSelector"
-				          HorizontalAlignment="Stretch"
-				          Grid.Row="2" Grid.Column="1"
-				          ItemsSource="{x:Static loc:MainWindow.AllMouseButtons}"
-				          SelectedItem="{Binding #ExampleSelectAndMove.(sam:BoxSelectGesture.TriggerSelectionMouseButton), Mode=TwoWay}"/>
+				<TextBlock Text="{Binding #ExampleSelectAndMove.ViewZoom, StringFormat='Current Zoom: {0:0.0}'}"/>
+				<Slider Value="{Binding #ExampleSelectAndMove.ViewZoom, Mode=TwoWay}"
+				        Minimum="0.2" Maximum="5"/>
 				
-				<TextBlock
-					Grid.Row="3" Grid.Column="0"
-					VerticalAlignment="Center"
-					Text="Resize behavior: "/>
+				<Grid ColumnDefinitions="*,*">
+					<NumericUpDown Grid.Column="0"
+					               Value="{Binding #ExampleSelectAndMove.ViewTranslateX}"
+					               FormatString="X: {0:0.0}"/>
+					<NumericUpDown Grid.Column="1"
+					               Value="{Binding #ExampleSelectAndMove.ViewTranslateY}"
+					               FormatString="Y: {0:0.0}"/>
+				</Grid>
 				
-				<ComboBox Name="ResizeBehaviorSelector"
-				          Grid.Row="3" Grid.Column="1"
-				          HorizontalAlignment="Stretch"
-				          ItemsSource="{x:Static loc:MainWindow.AllResizeBehaviors}"
-				          SelectedItem="{Binding #ExampleSelectAndMove.ResizeBehavior, Mode=TwoWay}"/>
-			</Grid>
-			
-			<Button
-				HorizontalAlignment="Stretch"
-				Margin="0,20,0,0"
-				Command="{Binding #ExampleSelectAndMove.ResetView}"
-				Content="Reset View"/>
+				<Separator/>
 
-			<Button
-				HorizontalAlignment="Stretch"
-				Margin="0,0,0,20"
-				Command="{Binding #ExampleSelectAndMove.FitViewToChildren}"
-				Content="Fit view to controls">
-				<Button.CommandParameter>
-					<x:Double>10</x:Double>
-				</Button.CommandParameter>
-			</Button>
-			
-			<UniformGrid Rows="1" HorizontalAlignment="Stretch" Name="SelectionTools">
-				<Button HorizontalAlignment="Stretch" 
-				        HorizontalContentAlignment="Center"
-				        Command="{Binding #ExampleSelectAndMove.ActivateSelectionGesture}">
+				<Grid ColumnDefinitions="*,*" RowDefinitions="*,*,*,*">
+					
+					<TextBlock
+						Grid.Row="0" Grid.Column="0"
+						VerticalAlignment="Center"
+						Text="Snap Mode: "/>	
+				
+					<ComboBox Name="SnapModeSelector"
+					          Grid.Row="0" Grid.Column="1"
+					          HorizontalAlignment="Stretch"
+					          ItemsSource="{x:Static loc:MainWindow.AllSnapModes}"
+					          SelectedItem="{Binding #ExampleSelectAndMove.SnapMode, Mode=TwoWay}"/>
+
+					<TextBlock
+						Grid.Row="1" Grid.Column="0"
+						VerticalAlignment="Center"
+						Text="Pan Mouse Button: "/>
+
+					<ComboBox Name="PanButtonSelector"
+					          HorizontalAlignment="Stretch"
+					          Grid.Row="1" Grid.Column="1"
+					          ItemsSource="{x:Static loc:MainWindow.AllMouseButtons}"
+					          SelectedItem="{Binding #ExampleSelectAndMove.PanMouseButton, Mode=TwoWay}"/>
+
+					<TextBlock
+						Grid.Row="2" Grid.Column="0"
+						VerticalAlignment="Center"
+						Text="Box Select Button: "/>
+
+					<ComboBox Name="BoxSelectButtonSelector"
+					          HorizontalAlignment="Stretch"
+					          Grid.Row="2" Grid.Column="1"
+					          ItemsSource="{x:Static loc:MainWindow.AllMouseButtons}"
+					          SelectedItem="{Binding #ExampleSelectAndMove.(sam:BoxSelectGesture.TriggerSelectionMouseButton), Mode=TwoWay}"/>
+					
+					<TextBlock
+						Grid.Row="3" Grid.Column="0"
+						VerticalAlignment="Center"
+						Text="Resize behavior: "/>
+					
+					<ComboBox Name="ResizeBehaviorSelector"
+					          Grid.Row="3" Grid.Column="1"
+					          HorizontalAlignment="Stretch"
+					          ItemsSource="{x:Static loc:MainWindow.AllResizeBehaviors}"
+					          SelectedItem="{Binding #ExampleSelectAndMove.ResizeBehavior, Mode=TwoWay}"/>
+				</Grid>
+				
+				<Button
+					HorizontalAlignment="Stretch"
+					Margin="0,20,0,0"
+					Command="{Binding #ExampleSelectAndMove.ResetView}"
+					Content="Reset View"/>
+
+				<Button
+					HorizontalAlignment="Stretch"
+					Margin="0,0,0,20"
+					Command="{Binding #ExampleSelectAndMove.FitViewToChildren}"
+					Content="Fit view to controls">
 					<Button.CommandParameter>
-						<sam:BoxSelectGesture/>
+						<x:Double>10</x:Double>
 					</Button.CommandParameter>
-					Box Select
 				</Button>
 				
-				<Button HorizontalAlignment="Stretch"
-				        HorizontalContentAlignment="Center"
-				        Command="{Binding #ExampleSelectAndMove.ActivateSelectionGesture}">
-					<Button.CommandParameter>
-						<sam:PaintSelectGesture/>
-					</Button.CommandParameter>
-					Paint Select
-				</Button>
+				<UniformGrid Rows="1" HorizontalAlignment="Stretch" Name="SelectionTools">
+					<Button HorizontalAlignment="Stretch" 
+					        HorizontalContentAlignment="Center"
+					        Command="{Binding #ExampleSelectAndMove.ActivateSelectionGesture}">
+						<Button.CommandParameter>
+							<sam:BoxSelectGesture/>
+						</Button.CommandParameter>
+						Box Select
+					</Button>
+					
+					<Button HorizontalAlignment="Stretch"
+					        HorizontalContentAlignment="Center"
+					        Command="{Binding #ExampleSelectAndMove.ActivateSelectionGesture}">
+						<Button.CommandParameter>
+							<sam:PaintSelectGesture/>
+						</Button.CommandParameter>
+						Paint Select
+					</Button>
+					
+					<Button HorizontalAlignment="Stretch"
+					        HorizontalContentAlignment="Center"
+					        Command="{Binding #ExampleSelectAndMove.ActivateSelectionGesture}">
+						<Button.CommandParameter>
+							<sam:LassoSelectGesture/>
+						</Button.CommandParameter>
+						Lasso Select
+					</Button>
+				</UniformGrid>
 				
-				<Button HorizontalAlignment="Stretch"
-				        HorizontalContentAlignment="Center"
-				        Command="{Binding #ExampleSelectAndMove.ActivateSelectionGesture}">
-					<Button.CommandParameter>
-						<sam:LassoSelectGesture/>
-					</Button.CommandParameter>
-					Lasso Select
-				</Button>
-			</UniformGrid>
-			
-			<TextBlock	
-				Padding="5"
-				Text="Selected Controls:"/>
-			<ListBox ItemsSource="{Binding #ExampleSelectAndMove.SelectionModel.SelectedItems}">
-				<ListBox.ItemTemplate>
-					<DataTemplate DataType="Control">
-						<TextBlock Text="{Binding Name}"/>
-					</DataTemplate>
-				</ListBox.ItemTemplate>
-			</ListBox>
-		</StackPanel>
+				<TextBlock	
+					Padding="5"
+					Text="Selected Controls:"/>
+				<ListBox ItemsSource="{Binding #ExampleSelectAndMove.SelectionModel.SelectedItems}">
+					<ListBox.ItemTemplate>
+						<DataTemplate DataType="Control">
+							<TextBlock Text="{Binding Name}"/>
+						</DataTemplate>
+					</ListBox.ItemTemplate>
+				</ListBox>
+			</StackPanel>
+		</ScrollViewer>
 		
 		<sam:SelectAndMove 
 			Name="ExampleSelectAndMove">
@@ -219,7 +222,8 @@
 			
 			<Panel
 				sam:SelectingGestureRecognizer.IntersectionShape="{Binding #EllipseWithTextIntersectTarget}"
-				Name="EllipseWithText"
+				sam:ZIndexLayerManger.ZIndexLayer="1"
+				Name="AlwaysOnTop"
 				Canvas.Left="50"
 				Canvas.Top="100">
 				
@@ -233,7 +237,7 @@
 					HorizontalAlignment="Center"
 					VerticalAlignment="Center"
 					FontWeight="Bold"
-					Text="This is a more complex control"/>
+					Text="This is always on top"/>
 			</Panel>
 			
 			<sam:SelectAndMoveItem IsMovable="False">
@@ -285,11 +289,11 @@
 				<Setter Property="Foreground" Value="Gray"/>
 			</Style>
 			
-			<Style Selector="sam|SelectAndMoveItem > Panel#EllipseWithText > Ellipse">
+			<Style Selector="sam|SelectAndMoveItem > Panel#AlwaysOnTop > Ellipse">
 				<Setter Property="Fill" Value="Olive"/>
 			</Style>
 			
-			<Style Selector="sam|SelectAndMoveItem:selected > Panel#EllipseWithText > Ellipse">
+			<Style Selector="sam|SelectAndMoveItem:selected > Panel#AlwaysOnTop > Ellipse">
 				<Setter Property="Fill" Value="DarkCyan"/>
 			</Style>
 			

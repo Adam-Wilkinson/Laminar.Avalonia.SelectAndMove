@@ -107,7 +107,7 @@ public class SelectAndMove : ItemsControl
         };
         Application.Current?.Resources.MergedDictionaries.Add(selectAndMoveTheme);
     }
-
+    
     private static void OnItemIsSelectedChanged(SelectAndMoveItem container, AvaloniaPropertyChangedEventArgs args)
     {
         if (ItemsControlFromItemContainer(container) is not SelectAndMove parent ||
@@ -451,6 +451,7 @@ public class SelectAndMove : ItemsControl
     {
         base.OnApplyTemplate(e);
         _transformRoot = e.NameScope.Find<Visual>(TransformRootName);
+        RecalculateRenderTransform();
         RaisePropertyChanged(TransformRootProperty, this, _transformRoot!);
         
         _selectionGestureLayer = e.NameScope.Find<Canvas>(SelectionGestureOverlayName);

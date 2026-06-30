@@ -246,5 +246,4 @@ public class CanvasSelectionModel : INotifyPropertyChanged
         public required object? Item { get; init; }
         public required int IndexInItemsView { get; init; }
     }
-
 }

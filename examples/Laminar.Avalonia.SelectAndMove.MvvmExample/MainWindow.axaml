@@ -40,6 +40,9 @@
                            ResizeBehavior="KeepView"
                            SelectionModel="{Binding SelectionModel}"
                            sam:BackgroundGridLines.LineBrush="#111"
+                           ViewTranslateX="-200"
+                           ViewTranslateY="-100"
+                           ViewZoom="0.8"
                            ItemsSource="{Binding Items}">
             <sam:SelectAndMove.ItemTemplate>
                 <DataTemplate DataType="vm:SelectAndMoveItemModel">

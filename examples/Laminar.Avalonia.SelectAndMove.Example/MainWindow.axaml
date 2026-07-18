@@ -125,7 +125,7 @@
 				<UniformGrid Rows="1" HorizontalAlignment="Stretch" Name="SelectionTools">
 					<Button HorizontalAlignment="Stretch" 
 					        HorizontalContentAlignment="Center"
-					        Command="{Binding #ExampleSelectAndMove.ActivateSelectionGesture}">
+					        Command="{Binding #ExampleSelectAndMove.SetActiveSelectionGesture}">
 						<Button.CommandParameter>
 							<sam:BoxSelectGesture/>
 						</Button.CommandParameter>
@@ -134,7 +134,7 @@
 					
 					<Button HorizontalAlignment="Stretch"
 					        HorizontalContentAlignment="Center"
-					        Command="{Binding #ExampleSelectAndMove.ActivateSelectionGesture}">
+					        Command="{Binding #ExampleSelectAndMove.SetActiveSelectionGesture}">
 						<Button.CommandParameter>
 							<sam:PaintSelectGesture/>
 						</Button.CommandParameter>
@@ -143,7 +143,7 @@
 					
 					<Button HorizontalAlignment="Stretch"
 					        HorizontalContentAlignment="Center"
-					        Command="{Binding #ExampleSelectAndMove.ActivateSelectionGesture}">
+					        Command="{Binding #ExampleSelectAndMove.SetActiveSelectionGesture}">
 						<Button.CommandParameter>
 							<sam:LassoSelectGesture/>
 						</Button.CommandParameter>

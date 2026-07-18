@@ -282,20 +282,26 @@ public class SelectAndMove : ItemsControl
         ViewZoom = zoomAmount;
     }
 
-    public void ActivateSelectionGesture(SelectingGestureRecognizer selectingGesture)
+    public bool SetActiveSelectionGesture(SelectingGestureRecognizer? selectingGesture)
     {
         if (_selectionGestureLayer is null) throw new InvalidOperationException();
 
+        if ((_selectionGestureLayer.GestureRecognizers.Count == 0 && selectingGesture is null)
+            || _selectionGestureLayer.GestureRecognizers.Contains(selectingGesture))
+            return false;
+        
         while (_selectionGestureLayer.GestureRecognizers.Count > 0)
         {
             _selectionGestureLayer.GestureRecognizers.Remove(_selectionGestureLayer.GestureRecognizers.First());
         }
+
+        if (selectingGesture is null) return true;
         
         _selectionGestureLayer.GestureRecognizers.Add(selectingGesture);
         _selectionGestureLayer.IsHitTestVisible = true;
         selectingGesture.OnGestureFinished += OnGestureFinished;
         selectingGesture.BeginHover();
-        return;
+        return true;
 
         void OnGestureFinished(object? sender, EventArgs e)
         {
@@ -364,15 +370,22 @@ public class SelectAndMove : ItemsControl
 
             if (_cursorMoveSessionInitialArgs is PointerPressedEventArgs)
             {
-                _cursorMoveSession?.Dispose();
-                _cursorMoveSessionInitialArgs = null;
-                _cursorMoveSession = null;
+                EndCursorMoveSession();
             }
 
             TryStopPanning();
             
             args.Handled = true;
         }
+    }
+
+    private bool EndCursorMoveSession()
+    {
+        if (_cursorMoveSession is null) return false;
+        _cursorMoveSession?.Dispose();
+        _cursorMoveSessionInitialArgs = null;
+        _cursorMoveSession = null;
+        return true;
     }
 
     private void StartPotentialMoveFromClick(PointerPressedEventArgs args)
@@ -402,23 +415,17 @@ public class SelectAndMove : ItemsControl
             case Key.Right:
                 Move(new Vector(-ArrowKeyMovementDistance / ViewZoom, 0));
                 break;
-            case Key.A:
-                if (e.KeyModifiers == KeyModifiers.Control)
-                {
-                    SelectionModel.SelectAll();
-                }
+            case Key.A when e.KeyModifiers == KeyModifiers.Control:
+                SelectionModel.SelectAll();
                 break;
-            case Key.OemMinus:
-                if (e.KeyModifiers == KeyModifiers.Control)
-                {
-                    ViewZoom *= 0.8;
-                }
+            case Key.OemMinus when e.KeyModifiers == KeyModifiers.Control:
+                ViewZoom *= 0.8;
                 break;
-            case Key.OemPlus:
-                if (e.KeyModifiers == KeyModifiers.Control)
-                {
-                    ViewZoom /= 0.8;
-                }
+            case Key.OemPlus when e.KeyModifiers == KeyModifiers.Control:
+                ViewZoom /= 0.8;
+                break;
+            case Key.Escape:
+                handled = EndCursorMoveSession() || SetActiveSelectionGesture(null);
                 break;
             default:
                 handled = false;
